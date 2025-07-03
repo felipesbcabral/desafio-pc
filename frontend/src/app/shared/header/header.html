@@ -1,0 +1,38 @@
+<mat-toolbar color="primary" class="header-toolbar">
+  <button
+    mat-icon-button
+    (click)="toggleSidebar()"
+    class="menu-button"
+    aria-label="Toggle menu">
+    <mat-icon>menu</mat-icon>
+  </button>
+  
+  <span class="app-title">Debt Manager</span>
+  
+  <span class="spacer"></span>
+  
+  <div class="header-actions">
+    <button
+      mat-icon-button
+      [matMenuTriggerFor]="userMenu"
+      aria-label="User menu">
+      <mat-icon>account_circle</mat-icon>
+    </button>
+    
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item>
+        <mat-icon>person</mat-icon>
+        <span>Perfil</span>
+      </button>
+      <button mat-menu-item>
+        <mat-icon>settings</mat-icon>
+        <span>Configurações</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item>
+        <mat-icon>logout</mat-icon>
+        <span>Sair</span>
+      </button>
+    </mat-menu>
+  </div>
+</mat-toolbar>

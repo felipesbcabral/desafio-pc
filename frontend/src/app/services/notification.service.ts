@@ -1,24 +1,27 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
-export interface Notification {
+export interface NotificationItem {
   id: string;
   type: 'success' | 'error' | 'warning' | 'info';
   message: string;
   duration?: number;
 }
 
+// Manter compatibilidade
+export type Notification = NotificationItem;
+
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
-  private notifications$ = new BehaviorSubject<Notification[]>([]);
+  public notifications$ = new BehaviorSubject<NotificationItem[]>([]);
 
-  getNotifications(): Observable<Notification[]> {
+  getNotifications(): Observable<NotificationItem[]> {
     return this.notifications$.asObservable();
   }
 
-  private addNotification(notification: Notification): void {
+  private addNotification(notification: NotificationItem): void {
     const currentNotifications = this.notifications$.value;
     this.notifications$.next([...currentNotifications, notification]);
 
@@ -34,6 +37,11 @@ export class NotificationService {
     const currentNotifications = this.notifications$.value;
     const filteredNotifications = currentNotifications.filter(n => n.id !== id);
     this.notifications$.next(filteredNotifications);
+  }
+
+  // Alias para compatibilidade
+  remove(id: string): void {
+    this.removeNotification(id);
   }
 
   success(message: string, duration: number = 5000): void {

@@ -1,1 +1,182 @@
-<p>debt-title-form works!</p>
+<div class="form-container">
+  <mat-card class="form-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>{{ isEditMode ? 'edit' : 'add' }}</mat-icon>
+        {{ isEditMode ? 'Editar Título' : 'Novo Título' }}
+      </mat-card-title>
+      <mat-card-subtitle>
+        {{ isEditMode ? 'Atualize as informações do título de dívida' : 'Preencha as informações para criar um novo título de dívida' }}
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="debtTitleForm" (ngSubmit)="onSubmit()" class="debt-title-form">
+        <!-- Informações do Título -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <mat-icon>description</mat-icon>
+            Informações do Título
+          </h3>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Número do Título</mat-label>
+              <input matInput 
+                     formControlName="titleNumber" 
+                     placeholder="Ex: TIT-001234, CRED-5678"
+                     maxlength="50">
+              <mat-hint>Identificação única do título</mat-hint>
+              <mat-error *ngIf="isFieldInvalid('titleNumber')">
+                {{ getErrorMessage('titleNumber') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Informações do Devedor -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <mat-icon>person</mat-icon>
+            Informações do Devedor
+          </h3>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nome do Devedor</mat-label>
+              <input matInput 
+                     formControlName="debtorName" 
+                     placeholder="Nome completo ou razão social"
+                     maxlength="100">
+              <mat-error *ngIf="isFieldInvalid('debtorName')">
+                {{ getErrorMessage('debtorName') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>CPF/CNPJ</mat-label>
+              <input matInput 
+                     formControlName="debtorDocument" 
+                     placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                     maxlength="18">
+              <mat-error *ngIf="isFieldInvalid('debtorDocument')">
+                {{ getErrorMessage('debtorDocument') }}
+              </mat-error>
+            </mat-form-field>
+
+          </div>
+        </div>
+
+        <!-- Informações Financeiras -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <mat-icon>attach_money</mat-icon>
+            Informações Financeiras
+          </h3>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Valor Original</mat-label>
+              <input matInput 
+                     type="number"
+                     formControlName="originalValue" 
+                     placeholder="0,00"
+                     step="0.01"
+                     min="0.01">
+              <span matTextPrefix>R$ </span>
+              <mat-hint>Valor total do título</mat-hint>
+              <mat-error *ngIf="isFieldInvalid('originalValue')">
+                {{ getErrorMessage('originalValue') }}
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Data de Vencimento</mat-label>
+              <input matInput 
+                     [matDatepicker]="picker"
+                     formControlName="dueDate"
+                     placeholder="dd/mm/aaaa">
+              <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+              <mat-hint>Data da primeira parcela</mat-hint>
+              <mat-error *ngIf="isFieldInvalid('dueDate')">
+                {{ getErrorMessage('dueDate') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="third-width">
+              <mat-label>Taxa de Juros (% ao dia)</mat-label>
+              <input matInput 
+                     type="number"
+                     formControlName="interestRatePerDay" 
+                     placeholder="0,00"
+                     step="0.01"
+                     min="0"
+                     max="100">
+              <span matTextSuffix>%</span>
+              <mat-hint>Taxa diária de juros</mat-hint>
+              <mat-error *ngIf="isFieldInvalid('interestRatePerDay')">
+                {{ getErrorMessage('interestRatePerDay') }}
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="third-width">
+              <mat-label>Taxa de Multa (%)</mat-label>
+              <input matInput 
+                     type="number"
+                     formControlName="penaltyRate" 
+                     placeholder="0,00"
+                     step="0.01"
+                     min="0"
+                     max="100">
+              <span matTextSuffix>%</span>
+              <mat-hint>Multa por atraso</mat-hint>
+              <mat-error *ngIf="isFieldInvalid('penaltyRate')">
+                {{ getErrorMessage('penaltyRate') }}
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="third-width">
+              <mat-label>Número de Parcelas</mat-label>
+              <input matInput 
+                     type="number"
+                     formControlName="installmentCount" 
+                     placeholder="1"
+                     min="1"
+                     max="12">
+              <mat-hint>1 a 12 parcelas</mat-hint>
+              <mat-error *ngIf="isFieldInvalid('installmentCount')">
+                {{ getErrorMessage('installmentCount') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="form-actions">
+          <button type="button" 
+                  mat-stroked-button 
+                  color="warn" 
+                  (click)="onCancel()"
+                  class="action-button">
+            <mat-icon>cancel</mat-icon>
+            Cancelar
+          </button>
+          
+          <button type="submit" 
+                  mat-raised-button 
+                  color="primary" 
+                  [disabled]="debtTitleForm.invalid"
+                  class="action-button">
+            <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+            {{ isEditMode ? 'Atualizar' : 'Criar' }} Título
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

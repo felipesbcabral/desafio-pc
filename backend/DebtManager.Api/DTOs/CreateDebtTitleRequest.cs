@@ -39,6 +39,14 @@ public class CreateDebtTitleRequest
     public decimal InterestRatePerDay { get; set; }
 
     /// <summary>
+    /// Taxa de multa (em porcentagem)
+    /// </summary>
+    /// <example>2.0</example>
+    [Required(ErrorMessage = "Taxa de multa é obrigatória")]
+    [Range(0, 100, ErrorMessage = "Taxa de multa deve estar entre 0 e 100")]
+    public decimal PenaltyRate { get; set; }
+
+    /// <summary>
     /// Nome do devedor
     /// </summary>
     /// <example>João Silva</example>

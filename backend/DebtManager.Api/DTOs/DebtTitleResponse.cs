@@ -36,6 +36,11 @@ public class DebtTitleResponse
     public decimal InterestRatePerDay { get; set; }
 
     /// <summary>
+    /// Taxa de multa
+    /// </summary>
+    public decimal PenaltyRate { get; set; }
+
+    /// <summary>
     /// Nome do devedor
     /// </summary>
     public string DebtorName { get; set; } = string.Empty;

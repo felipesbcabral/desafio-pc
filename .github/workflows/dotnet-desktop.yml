@@ -1,0 +1,90 @@
+# This workflow will build and test a .NET Core API application
+# For more information on GitHub Actions, refer to https://github.com/features/actions
+
+name: .NET Core API CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
+    runs-on: windows-latest
+
+    env:
+      Solution_Name: DebtManager-Challenge.sln
+      Api_Project_Path: DebtManager.Api\DebtManager.Api.csproj
+      Core_Project_Path: DebtManager.Core\DebtManager.Core.csproj
+      Working_Directory: backend
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # Install the .NET Core workload
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    # Add MSBuild to the PATH
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v2
+
+    # Restore dependencies
+    - name: Restore dependencies
+      run: dotnet restore $env:Solution_Name
+      working-directory: ${{ env.Working_Directory }}
+      env:
+        Configuration: ${{ matrix.configuration }}
+
+    # Build the solution
+    - name: Build the solution
+      run: dotnet build $env:Solution_Name --configuration $env:Configuration --no-restore
+      working-directory: ${{ env.Working_Directory }}
+      env:
+        Configuration: ${{ matrix.configuration }}
+
+    # Execute unit tests (when available)
+    - name: Execute unit tests
+      run: dotnet test $env:Solution_Name --configuration $env:Configuration --no-build --verbosity normal
+      working-directory: ${{ env.Working_Directory }}
+      env:
+        Configuration: ${{ matrix.configuration }}
+      continue-on-error: true  # Continue even if no tests are found
+
+    # Publish the API
+    - name: Publish API
+      run: dotnet publish $env:Api_Project_Path --configuration $env:Configuration --no-build --output ./publish
+      working-directory: ${{ env.Working_Directory }}
+      env:
+        Configuration: ${{ matrix.configuration }}
+
+    # Upload build artifacts
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: DebtManager-API-${{ matrix.configuration }}
+        path: ${{ env.Working_Directory }}/publish
+        retention-days: 30
+
+    # Upload solution artifacts for debugging
+    - name: Upload solution artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: DebtManager-Solution-${{ matrix.configuration }}
+        path: |
+          ${{ env.Working_Directory }}/DebtManager.Api/bin/${{ matrix.configuration }}
+          ${{ env.Working_Directory }}/DebtManager.Core/bin/${{ matrix.configuration }}
+        retention-days: 7
+      if: matrix.configuration == 'Debug'

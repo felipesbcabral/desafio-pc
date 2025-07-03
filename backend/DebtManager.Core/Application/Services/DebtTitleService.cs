@@ -53,6 +53,33 @@ public class DebtTitleService(IDebtTitleRepository repository)
         return debtTitle;
     }
 
+    public async Task<DebtTitle> CreateDebtTitleWithCustomInstallmentsAsync(
+        string titleNumber,
+        decimal interestRatePerDay,
+        decimal penaltyRate,
+        string debtorName,
+        string debtorDocument,
+        List<(int number, decimal value, DateTime dueDate)> installments,
+        decimal? originalValue = null)
+    {
+        // Calcula o valor original se não fornecido
+        var calculatedOriginalValue = originalValue ?? installments.Sum(i => i.value);
+        
+        // Usa a data de vencimento da primeira parcela como data base
+        var baseDueDate = installments.OrderBy(i => i.number).First().dueDate;
+        
+        var debtor = new Debtor(debtorName, debtorDocument);
+        var debtTitle = new DebtTitle(titleNumber, calculatedOriginalValue, baseDueDate, interestRatePerDay, penaltyRate, debtor);
+        
+        // Adiciona as parcelas customizadas
+        foreach (var (number, value, dueDate) in installments)
+        {
+            debtTitle.AddInstallment(number, value, dueDate);
+        }
+        
+        return await _repository.AddAsync(debtTitle);
+    }
+
     public async Task<IEnumerable<DebtTitle>> GetAllDebtTitlesAsync()
     {
         return await _repository.GetAllAsync();

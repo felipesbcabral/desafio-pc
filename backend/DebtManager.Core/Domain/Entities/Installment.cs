@@ -54,6 +54,30 @@ public class Installment
         return !IsPaid && DateTime.Now.Date > DueDate.Date;
     }
 
+    public int GetDaysOverdue()
+    {
+        if (!IsOverdue())
+            return 0;
+
+        return (DateTime.Now.Date - DueDate.Date).Days;
+    }
+
+    public decimal CalculateInterest(decimal dailyInterestRate)
+    {
+        var daysOverdue = GetDaysOverdue();
+        if (daysOverdue <= 0)
+            return 0;
+
+        return Value * dailyInterestRate * daysOverdue;
+    }
+
+    public decimal CalculateUpdatedValue(decimal dailyInterestRate, decimal penaltyRate)
+    {
+        var interest = CalculateInterest(dailyInterestRate);
+        var penalty = IsOverdue() ? Value * (penaltyRate / 100) : 0;
+        return Value + interest + penalty;
+    }
+
     private void ValidateInstallment()
     {
         if (InstallmentNumber <= 0)

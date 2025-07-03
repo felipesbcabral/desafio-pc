@@ -1,5 +1,6 @@
 using DebtManager.Core.Infrastructure.Persistence;
 using DebtManager.Core.Domain.Repositories;
+using DebtManager.Core.Infrastructure.Repositories;
 using DebtManager.Core.Application.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,7 +16,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Injeção de dependência
 builder.Services.AddScoped<IDebtTitleRepository, DebtTitleRepository>();
+builder.Services.AddScoped<IInstallmentRepository, InstallmentRepository>();
 builder.Services.AddScoped<DebtTitleService>();
+builder.Services.AddScoped<InstallmentService>();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo

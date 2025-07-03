@@ -107,9 +107,12 @@ public class AppDbContext : DbContext
             
             entity.Property(e => e.IsPaid)
                 .IsRequired();
-
-            // Propriedade shadow para FK
-            entity.Property<Guid>("DebtTitleId")
+            
+            entity.Property(e => e.PaidAt)
+                .HasColumnType("datetime2")
+                .IsRequired(false);
+            
+            entity.Property(e => e.DebtTitleId)
                 .IsRequired();
         });
     }

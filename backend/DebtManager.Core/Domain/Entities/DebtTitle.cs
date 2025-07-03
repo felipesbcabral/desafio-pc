@@ -64,6 +64,29 @@ public class DebtTitle
 
     public decimal CalculateUpdatedValue()
     {
+        // Se há parcelas, calcula baseado nas parcelas individuais
+        if (Installments.Any())
+        {
+            var totalInterest = 0m;
+            var totalPenalty = 0m;
+            var totalOriginalValue = 0m;
+
+            foreach (var installment in Installments)
+            {
+                totalOriginalValue += installment.Value;
+                totalInterest += installment.CalculateInterest(InterestRatePerDay / 100);
+                
+                // Aplica multa apenas se a parcela estiver em atraso
+                if (installment.IsOverdue())
+                {
+                    totalPenalty += installment.Value * (PenaltyRate / 100);
+                }
+            }
+
+            return totalOriginalValue + totalInterest + totalPenalty;
+        }
+        
+        // Fallback para títulos sem parcelas (compatibilidade)
         var daysPastDue = (DateTime.Now.Date - DueDate.Date).Days;
         if (daysPastDue <= 0)
             return OriginalValue;

@@ -37,20 +37,7 @@ public class DebtsController : ControllerBase
         try
         {
             var debtTitles = await _debtTitleService.GetAllDebtTitlesAsync();
-            var response = debtTitles.Select(debt => new DebtTitleResponse
-            {
-                Id = debt.Id,
-                TitleNumber = debt.TitleNumber,
-                OriginalValue = debt.OriginalValue,
-                UpdatedValue = debt.CalculateUpdatedValue(),
-                DueDate = debt.DueDate,
-                InterestRatePerDay = debt.InterestRatePerDay,
-                PenaltyRate = debt.PenaltyRate,
-                DebtorName = debt.Debtor.Name,
-                DebtorDocument = debt.Debtor.Document.Value,
-                DebtorDocumentType = debt.Debtor.Document.Type.ToString(),
-                CreatedAt = debt.CreatedAt
-            });
+            var response = debtTitles.Select(MapToResponse);
 
             return Ok(response);
         }
@@ -84,20 +71,7 @@ public class DebtsController : ControllerBase
             if (debtTitle == null)
                 return NotFound($"Título de dívida com ID {id} não encontrado");
 
-            var response = new DebtTitleResponse
-            {
-                Id = debtTitle.Id,
-                TitleNumber = debtTitle.TitleNumber,
-                OriginalValue = debtTitle.OriginalValue,
-                UpdatedValue = debtTitle.CalculateUpdatedValue(),
-                DueDate = debtTitle.DueDate,
-                InterestRatePerDay = debtTitle.InterestRatePerDay,
-                PenaltyRate = debtTitle.PenaltyRate,
-                DebtorName = debtTitle.Debtor.Name,
-                DebtorDocument = debtTitle.Debtor.Document.Value,
-                DebtorDocumentType = debtTitle.Debtor.Document.Type.ToString(),
-                CreatedAt = debtTitle.CreatedAt
-            };
+            var response = MapToResponse(debtTitle);
 
             return Ok(response);
         }
@@ -127,29 +101,38 @@ public class DebtsController : ControllerBase
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var createdDebt = await _debtTitleService.CreateDebtTitleAsync(
-                request.TitleNumber,
-                request.OriginalValue,
-                request.DueDate,
-                request.InterestRatePerDay,
-                request.PenaltyRate,
-                request.DebtorName,
-                request.DebtorDocument);
-
-            var response = new DebtTitleResponse
+            DebtTitle createdDebt;
+            
+            // Se há parcelas customizadas, usa o método específico
+            if (request.Installments.Any())
             {
-                Id = createdDebt.Id,
-                TitleNumber = createdDebt.TitleNumber,
-                OriginalValue = createdDebt.OriginalValue,
-                UpdatedValue = createdDebt.CalculateUpdatedValue(),
-                DueDate = createdDebt.DueDate,
-                InterestRatePerDay = createdDebt.InterestRatePerDay,
-                PenaltyRate = createdDebt.PenaltyRate,
-                DebtorName = createdDebt.Debtor.Name,
-                DebtorDocument = createdDebt.Debtor.Document.Value,
-                DebtorDocumentType = createdDebt.Debtor.Document.Type.ToString(),
-                CreatedAt = createdDebt.CreatedAt
-            };
+                var installments = request.Installments.Select(i => (i.InstallmentNumber, i.Value, i.DueDate)).ToList();
+                createdDebt = await _debtTitleService.CreateDebtTitleWithCustomInstallmentsAsync(
+                    request.TitleNumber,
+                    request.InterestRatePerDay,
+                    request.PenaltyRate,
+                    request.DebtorName,
+                    request.DebtorDocument,
+                    installments,
+                    request.OriginalValue);
+            }
+            else
+            {
+                // Fallback para o método original (compatibilidade)
+                if (!request.OriginalValue.HasValue)
+                    return BadRequest("Valor original é obrigatório quando não há parcelas especificadas.");
+                    
+                createdDebt = await _debtTitleService.CreateDebtTitleAsync(
+                    request.TitleNumber,
+                    request.OriginalValue.Value,
+                    request.DueDate,
+                    request.InterestRatePerDay,
+                    request.PenaltyRate,
+                    request.DebtorName,
+                    request.DebtorDocument);
+            }
+
+            var response = MapToResponse(createdDebt);
 
             return CreatedAtAction(nameof(GetDebtById), new { id = response.Id }, response);
         }
@@ -163,5 +146,43 @@ public class DebtsController : ControllerBase
             _logger.LogError(ex, "Erro interno ao criar título de dívida");
             return StatusCode(500, new { error = "Erro interno do servidor" });
         }
+    }
+
+    private DebtTitleResponse MapToResponse(DebtTitle debtTitle)
+    {
+        var installments = debtTitle.Installments.Select(i => new InstallmentResponse
+        {
+            Id = i.Id,
+            InstallmentNumber = i.InstallmentNumber,
+            Value = i.Value,
+            DueDate = i.DueDate,
+            IsPaid = i.IsPaid,
+            PaidAt = i.PaidAt,
+            IsOverdue = i.IsOverdue(),
+            DaysOverdue = i.IsOverdue() ? (DateTime.Now.Date - i.DueDate.Date).Days : 0,
+            InterestAmount = i.CalculateInterest(debtTitle.InterestRatePerDay / 100),
+            UpdatedValue = i.CalculateUpdatedValue(debtTitle.InterestRatePerDay / 100, debtTitle.PenaltyRate)
+        }).ToList();
+
+        var maxDaysOverdue = installments.Any() ? installments.Max(i => i.DaysOverdue) : 
+            (DateTime.Now.Date > debtTitle.DueDate.Date ? (DateTime.Now.Date - debtTitle.DueDate.Date).Days : 0);
+
+        return new DebtTitleResponse
+        {
+            Id = debtTitle.Id,
+            TitleNumber = debtTitle.TitleNumber,
+            OriginalValue = debtTitle.OriginalValue,
+            UpdatedValue = debtTitle.CalculateUpdatedValue(),
+            DueDate = debtTitle.DueDate,
+            InterestRatePerDay = debtTitle.InterestRatePerDay,
+            PenaltyRate = debtTitle.PenaltyRate,
+            DebtorName = debtTitle.Debtor.Name,
+            DebtorDocument = debtTitle.Debtor.Document.Value,
+            DebtorDocumentType = debtTitle.Debtor.Document.Type.ToString(),
+            CreatedAt = debtTitle.CreatedAt,
+            InstallmentCount = installments.Count,
+            DaysOverdue = maxDaysOverdue,
+            Installments = installments
+        };
     }
 }

@@ -6,6 +6,7 @@ namespace DebtManager.Core.Domain.Entities;
 public class DebtTitle
 {
     public Guid Id { get; private set; }
+    public string TitleNumber { get; private set; } = null!;
     public decimal OriginalValue { get; private set; }
     public DateTime DueDate { get; private set; }
     public decimal InterestRatePerDay { get; private set; }
@@ -19,12 +20,14 @@ public class DebtTitle
     private DebtTitle() { }
 
     public DebtTitle(
+        string titleNumber,
         decimal originalValue,
         DateTime dueDate,
         decimal interestRatePerDay,
         Debtor debtor)
     {
         Id = Guid.NewGuid();
+        TitleNumber = titleNumber ?? throw new ArgumentNullException(nameof(titleNumber));
         OriginalValue = originalValue;
         DueDate = dueDate;
         InterestRatePerDay = interestRatePerDay;
@@ -36,6 +39,7 @@ public class DebtTitle
 
     // Construtor alternativo para compatibilidade
     public DebtTitle(
+        string titleNumber,
         decimal originalValue,
         DateTime dueDate,
         decimal interestRatePerDay,
@@ -43,6 +47,7 @@ public class DebtTitle
         string debtorDocument)
     {
         Id = Guid.NewGuid();
+        TitleNumber = titleNumber ?? throw new ArgumentNullException(nameof(titleNumber));
         OriginalValue = originalValue;
         DueDate = dueDate;
         InterestRatePerDay = interestRatePerDay;
@@ -70,6 +75,9 @@ public class DebtTitle
 
     private void ValidateEntity()
     {
+        if (string.IsNullOrWhiteSpace(TitleNumber))
+            throw new ArgumentException("O número do título é obrigatório.");
+
         if (OriginalValue <= 0)
             throw new ArgumentException("O valor original deve ser maior que zero.");
 

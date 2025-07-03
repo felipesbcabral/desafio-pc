@@ -12,6 +12,7 @@ public class DebtTitleService(IDebtTitleRepository repository)
     private readonly IDebtTitleRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
 
     public async Task<DebtTitle> CreateDebtTitleAsync(
+        string titleNumber,
         decimal originalValue,
         DateTime dueDate,
         decimal interestRatePerDay,
@@ -19,7 +20,7 @@ public class DebtTitleService(IDebtTitleRepository repository)
         string debtorDocument)
     {
         var debtor = new Debtor(debtorName, debtorDocument);
-        var debtTitle = new DebtTitle(originalValue, dueDate, interestRatePerDay, debtor);
+        var debtTitle = new DebtTitle(titleNumber, originalValue, dueDate, interestRatePerDay, debtor);
         
         return await _repository.AddAsync(debtTitle);
     }
@@ -33,7 +34,7 @@ public class DebtTitleService(IDebtTitleRepository repository)
         int numberOfInstallments)
     {
         var debtTitle = await CreateDebtTitleAsync(
-            originalValue, dueDate, interestRatePerDay, debtorName, debtorDocument);
+            "TEMP-" + Guid.NewGuid().ToString()[..8], originalValue, dueDate, interestRatePerDay, debtorName, debtorDocument);
 
         if (numberOfInstallments > 1)
         {

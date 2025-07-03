@@ -123,8 +123,8 @@
     </mat-card-content>
   </mat-card>
 
-  <!-- Tabela -->
-  <mat-card class="table-card">
+  <!-- Tabela Desktop -->
+  <mat-card class="table-card desktop-table" [class.hidden-mobile]="true">
     <mat-card-content>
       <!-- Loading Spinner -->
       <div *ngIf="isLoading" class="loading-container">
@@ -306,4 +306,121 @@
       </div>
     </mat-card-content>
   </mat-card>
+
+  <!-- Cards Mobile -->
+  <div class="mobile-cards hidden-desktop" *ngIf="!isLoading && !hasError">
+    <!-- Informações da Lista Mobile -->
+    <div class="mobile-info" *ngIf="filteredDebtTitles.length > 0">
+      <span class="total-items">{{ filteredDebtTitles.length }} título(s) encontrado(s)</span>
+    </div>
+
+    <!-- Cards dos Títulos -->
+    <mat-card *ngFor="let debtTitle of getPaginatedData()" class="mobile-card">
+      <mat-card-header>
+        <div class="mobile-card-header">
+          <div class="title-info">
+            <h3 class="title-number">{{ debtTitle.titleNumber }}</h3>
+            <mat-chip [class]="getStatusInfo(debtTitle).class" class="status-chip">
+              <mat-icon>{{ debtTitle.isOverdue ? 'warning' : 'check_circle' }}</mat-icon>
+              {{ getStatusInfo(debtTitle).text }}
+            </mat-chip>
+          </div>
+        </div>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="mobile-card-content">
+          <!-- Informações do Devedor -->
+          <div class="debtor-section">
+            <div class="section-header">
+              <mat-icon>person</mat-icon>
+              <span class="section-title">Devedor</span>
+            </div>
+            <div class="debtor-details">
+              <p class="debtor-name">{{ debtTitle.debtorName }}</p>
+              <p class="debtor-document">{{ debtTitle.debtorDocument }}</p>
+            </div>
+          </div>
+
+          <!-- Informações Financeiras -->
+          <div class="financial-section">
+            <div class="section-header">
+              <mat-icon>attach_money</mat-icon>
+              <span class="section-title">Valores</span>
+            </div>
+            <div class="financial-details">
+              <div class="value-row">
+                <span class="label">Original:</span>
+                <span class="value">{{ formatCurrency(debtTitle.originalValue) }}</span>
+              </div>
+              <div class="value-row" *ngIf="debtTitle.updatedValue !== debtTitle.originalValue">
+                <span class="label">Atual:</span>
+                <span class="value updated">{{ formatCurrency(debtTitle.updatedValue) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Informações de Data -->
+          <div class="date-section">
+            <div class="section-header">
+              <mat-icon>schedule</mat-icon>
+              <span class="section-title">Vencimento</span>
+            </div>
+            <div class="date-details">
+              <p class="due-date">{{ formatDate(debtTitle.dueDate) }}</p>
+              <p class="overdue-info" *ngIf="debtTitle.isOverdue">
+                {{ formatOverdueDays(debtTitle.daysOverdue) }} de atraso
+              </p>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+      
+      <mat-card-actions class="mobile-actions">
+        <button mat-button color="primary" [routerLink]="['/debt-titles', debtTitle.id]">
+          <mat-icon>visibility</mat-icon>
+          Ver
+        </button>
+        <button mat-button color="accent" [routerLink]="['/debt-titles', debtTitle.id, 'edit']">
+          <mat-icon>edit</mat-icon>
+          Editar
+        </button>
+        <button mat-button color="warn" (click)="deleteDebtTitle(debtTitle.id)">
+          <mat-icon>delete</mat-icon>
+          Excluir
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Mensagem de Sem Dados Mobile -->
+    <div *ngIf="filteredDebtTitles.length === 0" class="mobile-no-data">
+      <mat-icon>inbox</mat-icon>
+      <h3>Nenhum título encontrado</h3>
+      <p *ngIf="hasActiveFilters()">
+        Tente ajustar os filtros ou 
+        <button mat-button color="primary" (click)="clearFilters()">
+          limpar filtros
+        </button>
+      </p>
+      <p *ngIf="!hasActiveFilters()">
+        Ainda não há títulos de dívida cadastrados.
+        <br>
+        <button mat-raised-button color="primary" routerLink="/debt-titles/new">
+          <mat-icon>add</mat-icon>
+          Criar Primeiro Título
+        </button>
+      </p>
+    </div>
+
+    <!-- Paginação Mobile -->
+    <mat-paginator *ngIf="filteredDebtTitles.length > 0"
+                   [length]="totalItems"
+                   [pageSize]="pageSize"
+                   [pageIndex]="pageIndex"
+                   [pageSizeOptions]="pageSizeOptions"
+                   [showFirstLastButtons]="true"
+                   (page)="onPageChange($event)"
+                   class="mobile-paginator">
+    </mat-paginator>
+  </div>
 </div>

@@ -460,9 +460,24 @@ mat-paginator {
       min-width: 150px;
     }
   }
+  
+  .filters-card {
+    .filters-content {
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      
+      .search-field {
+        grid-column: 1 / -1;
+      }
+    }
+  }
 }
 
 @media (max-width: 768px) {
+  .debt-title-list {
+    padding: 8px;
+  }
+  
   .list-header {
     .header-content {
       flex-direction: column;
@@ -476,15 +491,32 @@ mat-paginator {
     
     .header-actions {
       justify-content: center;
+      width: 100%;
+      gap: 8px;
+      
+      button {
+        flex: 1;
+        min-width: 0;
+        
+        .mat-icon {
+          margin-right: 4px;
+        }
+        
+        span {
+          font-size: 0.9rem;
+        }
+      }
     }
   }
   
   .filters-container .filter-row {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
+    gap: 12px;
     
     .search-field,
-    .status-field {
+    .status-field,
+    .filter-field,
+    .value-field {
       min-width: unset;
     }
     
@@ -503,6 +535,248 @@ mat-paginator {
   .actions-cell .action-buttons {
     flex-direction: column;
     gap: 2px;
+  }
+  
+  // Ocultar tabela desktop em mobile
+  .hidden-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  // Ocultar cards mobile em desktop
+  .hidden-desktop {
+    display: none !important;
+  }
+}
+
+// Estilos para cards mobile
+.mobile-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  
+  .mobile-info {
+    background: rgba(var(--primary-color-rgb), 0.1);
+    padding: 12px 16px;
+    border-radius: 8px;
+    text-align: center;
+    
+    .total-items {
+      font-weight: 500;
+      color: var(--primary-color);
+    }
+  }
+  
+  .mobile-card {
+    margin-bottom: 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      transform: translateY(-2px);
+    }
+    
+    .mobile-card-header {
+      .title-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        
+        .title-number {
+          margin: 0;
+          font-size: 1.2rem;
+          font-weight: 600;
+          color: var(--primary-color);
+        }
+        
+        .status-chip {
+          font-size: 0.8rem;
+          height: 28px;
+          
+          mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+          }
+        }
+      }
+    }
+    
+    .mobile-card-content {
+      padding: 0;
+      
+      .debtor-section,
+      .financial-section,
+      .date-section {
+        padding: 16px 0;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+        
+        &:last-child {
+          border-bottom: none;
+        }
+        
+        .section-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 12px;
+          
+          mat-icon {
+            color: var(--primary-color);
+            font-size: 20px;
+          }
+          
+          .section-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+        }
+        
+        .debtor-details {
+          .debtor-name {
+            font-weight: 500;
+            font-size: 1rem;
+            margin: 0 0 4px 0;
+            color: var(--text-primary);
+          }
+          
+          .debtor-document {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 0;
+            color: var(--text-secondary);
+          }
+        }
+        
+        .financial-details {
+          .value-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            
+            &:last-child {
+              margin-bottom: 0;
+            }
+            
+            .label {
+              font-size: 0.9rem;
+              color: var(--text-secondary);
+            }
+            
+            .value {
+              font-weight: 600;
+              font-size: 1rem;
+              
+              &.updated {
+                color: var(--accent-color);
+              }
+            }
+          }
+        }
+        
+        .date-details {
+          .due-date {
+            font-weight: 500;
+            font-size: 1rem;
+            margin: 0 0 4px 0;
+            color: var(--text-primary);
+          }
+          
+          .overdue-info {
+            font-size: 0.9rem;
+            color: #f44336;
+            margin: 0;
+            font-weight: 500;
+          }
+        }
+      }
+    }
+    
+    .mobile-actions {
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 16px;
+      background: rgba(0,0,0,0.02);
+      
+      button {
+        flex: 1;
+        margin: 0 4px;
+        
+        mat-icon {
+          margin-right: 4px;
+          font-size: 18px;
+        }
+      }
+    }
+  }
+  
+  .mobile-no-data {
+    text-align: center;
+    padding: 48px 24px;
+    
+    mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: var(--text-disabled);
+      margin-bottom: 16px;
+    }
+    
+    h3 {
+      margin: 0 0 16px 0;
+      color: var(--text-secondary);
+    }
+    
+    p {
+      color: var(--text-secondary);
+      line-height: 1.5;
+      
+      button {
+        margin-top: 16px;
+      }
+    }
+  }
+  
+  .mobile-paginator {
+    margin-top: 16px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+}
+
+// Melhorias para tablets
+@media (min-width: 769px) and (max-width: 1024px) {
+  .debt-title-list {
+    padding: 16px;
+  }
+  
+  .header {
+    .header-actions {
+      gap: 12px;
+      
+      button {
+        min-width: 120px;
+      }
+    }
+  }
+  
+  .table-card {
+    .mat-mdc-table {
+      font-size: 0.9rem;
+    }
+    
+    .debtor-column {
+      max-width: 180px;
+    }
   }
 }
 

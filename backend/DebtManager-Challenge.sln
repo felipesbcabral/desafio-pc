@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DebtManager.Core", "DebtMan
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DebtManager.Api", "DebtManager.Api\DebtManager.Api.csproj", "{080BE7A8-A10C-463B-8F63-922CA4BBBDE4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DebtManager.Tests", "DebtManager.Tests\DebtManager.Tests.csproj", "{E7EF2149-1049-4A41-AAB0-50EC4094114F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,18 @@ Global
 		{080BE7A8-A10C-463B-8F63-922CA4BBBDE4}.Release|x64.Build.0 = Release|Any CPU
 		{080BE7A8-A10C-463B-8F63-922CA4BBBDE4}.Release|x86.ActiveCfg = Release|Any CPU
 		{080BE7A8-A10C-463B-8F63-922CA4BBBDE4}.Release|x86.Build.0 = Release|Any CPU
+		{E7EF2149-1049-4A41-AAB0-50EC4094114F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7EF2149-1049-4A41-AAB0-50EC4094114F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7EF2149-1049-4A41-AAB0-50EC4094114F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E7EF2149-1049-4A41-AAB0-50EC4094114F}.Debug|x64.Build.0 = Debug|Any CPU
+		{E7EF2149-1049-4A41-AAB0-50EC4094114F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E7EF2149-1049-4A41-AAB0-50EC4094114F}.Debug|x86.Build.0 = Debug|Any CPU
+		{E7EF2149-1049-4A41-AAB0-50EC4094114F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7EF2149-1049-4A41-AAB0-50EC4094114F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7EF2149-1049-4A41-AAB0-50EC4094114F}.Release|x64.ActiveCfg = Release|Any CPU
+		{E7EF2149-1049-4A41-AAB0-50EC4094114F}.Release|x64.Build.0 = Release|Any CPU
+		{E7EF2149-1049-4A41-AAB0-50EC4094114F}.Release|x86.ActiveCfg = Release|Any CPU
+		{E7EF2149-1049-4A41-AAB0-50EC4094114F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

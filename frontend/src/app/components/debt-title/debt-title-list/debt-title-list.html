@@ -10,15 +10,25 @@
         <button mat-raised-button 
                 color="primary" 
                 routerLink="/debt-titles/new"
-                matTooltip="Criar novo título">
+                matTooltip="Criar novo título de dívida">
           <mat-icon>add</mat-icon>
           Novo Título
         </button>
-        <button mat-icon-button 
-                (click)="refresh()"
-                matTooltip="Atualizar lista"
-                [disabled]="isLoading">
+        
+        <button mat-stroked-button 
+                (click)="loadDebtTitles()"
+                [disabled]="isLoading"
+                matTooltip="Atualizar lista">
           <mat-icon>refresh</mat-icon>
+          Atualizar
+        </button>
+        
+        <button mat-stroked-button 
+                (click)="exportToCSV()"
+                [disabled]="filteredDebtTitles.length === 0"
+                matTooltip="Exportar para CSV">
+          <mat-icon>download</mat-icon>
+          Exportar
         </button>
       </div>
     </div>
@@ -40,7 +50,7 @@
             <mat-hint>Busque por número do título, nome ou documento</mat-hint>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="status-field">
+          <mat-form-field appearance="outline" class="filter-field">
             <mat-label>Status</mat-label>
             <mat-select [(value)]="overdueFilter" 
                         (selectionChange)="onOverdueFilterChange()">
@@ -50,12 +60,60 @@
               </mat-option>
             </mat-select>
           </mat-form-field>
+          
+          <!-- Filtro de Data Inicial -->
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Data Inicial</mat-label>
+            <input matInput 
+                   type="date"
+                   [(ngModel)]="dateRangeFilter.start"
+                   (ngModelChange)="onDateRangeChange()"
+                   matTooltip="Filtrar por data de vencimento inicial">
+          </mat-form-field>
+          
+          <!-- Filtro de Data Final -->
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Data Final</mat-label>
+            <input matInput 
+                   type="date"
+                   [(ngModel)]="dateRangeFilter.end"
+                   (ngModelChange)="onDateRangeChange()"
+                   matTooltip="Filtrar por data de vencimento final">
+          </mat-form-field>
+          
+          <!-- Filtro de Valor Mínimo -->
+          <mat-form-field appearance="outline" class="filter-field value-field">
+            <mat-label>Valor Mín.</mat-label>
+            <input matInput 
+                   type="number"
+                   [(ngModel)]="valueRangeFilter.min"
+                   (ngModelChange)="onValueRangeChange()"
+                   placeholder="0,00"
+                   min="0"
+                   step="0.01"
+                   matTooltip="Filtrar por valor mínimo">
+            <span matPrefix>R$ </span>
+          </mat-form-field>
+          
+          <!-- Filtro de Valor Máximo -->
+          <mat-form-field appearance="outline" class="filter-field value-field">
+            <mat-label>Valor Máx.</mat-label>
+            <input matInput 
+                   type="number"
+                   [(ngModel)]="valueRangeFilter.max"
+                   (ngModelChange)="onValueRangeChange()"
+                   placeholder="0,00"
+                   min="0"
+                   step="0.01"
+                   matTooltip="Filtrar por valor máximo">
+            <span matPrefix>R$ </span>
+          </mat-form-field>
 
           <div class="filter-actions">
             <button mat-stroked-button 
                     (click)="clearFilters()"
-                    matTooltip="Limpar filtros"
-                    [disabled]="!searchTerm && !overdueFilter">
+                    matTooltip="Limpar todos os filtros"
+                    [disabled]="!hasActiveFilters()">
               <mat-icon>clear</mat-icon>
               Limpar
             </button>
@@ -139,7 +197,13 @@
               Valor Original
             </th>
             <td mat-cell *matCellDef="let element">
-              <span class="currency-value">{{ formatCurrency(element.originalValue) }}</span>
+              <div class="value-info">
+                <span class="original-value">{{ formatCurrency(element.originalValue) }}</span>
+                <div class="updated-value" *ngIf="element.updatedValue !== element.originalValue">
+                  <mat-icon class="value-icon">trending_up</mat-icon>
+                  <span>{{ formatCurrency(element.updatedValue) }}</span>
+                </div>
+              </div>
             </td>
           </ng-container>
 
@@ -149,7 +213,13 @@
               Vencimento
             </th>
             <td mat-cell *matCellDef="let element">
-              <span class="due-date">{{ formatDate(element.dueDate) }}</span>
+              <div class="date-info">
+                <span class="due-date">{{ formatDate(element.dueDate) }}</span>
+                <div class="overdue-info" *ngIf="element.isOverdue">
+                  <mat-icon class="overdue-icon">schedule</mat-icon>
+                  <span>{{ formatOverdueDays(element.daysOverdue) }}</span>
+                </div>
+              </div>
             </td>
           </ng-container>
 
@@ -159,8 +229,10 @@
               Status
             </th>
             <td mat-cell *matCellDef="let element">
-              <mat-chip [class]="getStatusClass(element.status)">
-                {{ getStatusText(element.status) }}
+              <mat-chip [class]="getStatusInfo(element).class">
+                <mat-icon *ngIf="element.isOverdue">warning</mat-icon>
+                <mat-icon *ngIf="!element.isOverdue">check_circle</mat-icon>
+                {{ getStatusInfo(element).text }}
               </mat-chip>
             </td>
           </ng-container>
@@ -202,13 +274,13 @@
         <div *ngIf="filteredDebtTitles.length === 0" class="no-data-container">
           <mat-icon>inbox</mat-icon>
           <h3>Nenhum título encontrado</h3>
-          <p *ngIf="searchTerm || overdueFilter">
+          <p *ngIf="hasActiveFilters()">
             Tente ajustar os filtros ou 
             <button mat-button color="primary" (click)="clearFilters()">
-              limpar todos os filtros
+              limpar filtros
             </button>
           </p>
-          <p *ngIf="!searchTerm && !overdueFilter">
+          <p *ngIf="!hasActiveFilters()">
             Ainda não há títulos de dívida cadastrados.
             <br>
             <button mat-raised-button 

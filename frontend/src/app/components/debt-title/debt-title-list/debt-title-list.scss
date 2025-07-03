@@ -55,24 +55,46 @@
 // Filtros
 .filters-container {
   .filter-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
     gap: 16px;
     align-items: flex-end;
-    flex-wrap: wrap;
-  }
-  
-  .search-field {
-    flex: 1;
-    min-width: 300px;
-  }
-  
-  .status-field {
-    min-width: 200px;
-  }
-  
-  .filter-actions {
-    display: flex;
-    gap: 8px;
+    
+    .search-field {
+      min-width: 250px;
+    }
+    
+    .filter-field {
+      min-width: 120px;
+    }
+    
+    .value-field {
+      min-width: 100px;
+    }
+    
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    
+    @media (max-width: 1200px) {
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      
+      .search-field {
+        grid-column: 1 / -1;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      
+      .filter-field,
+      .value-field {
+        min-width: unset;
+      }
+    }
   }
 }
 
@@ -165,6 +187,81 @@
   font-family: 'Roboto Mono', monospace;
 }
 
+.title-column {
+  font-weight: 500;
+  color: var(--primary-color);
+}
+
+.debtor-column {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-column {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.value-column {
+  text-align: right;
+  
+  .value-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    
+    .original-value {
+      font-weight: 500;
+      font-size: 0.95em;
+    }
+    
+    .updated-value {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.85em;
+      color: var(--accent-color);
+      margin-top: 2px;
+      
+      .value-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
+    }
+  }
+}
+
+.date-column {
+  white-space: nowrap;
+  
+  .date-info {
+    display: flex;
+    flex-direction: column;
+    
+    .due-date {
+      font-weight: 500;
+    }
+    
+    .overdue-info {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8em;
+      color: #f44336;
+      margin-top: 2px;
+      
+      .overdue-icon {
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
+      }
+    }
+  }
+}
+
 .debtor-info {
   display: flex;
   flex-direction: column;
@@ -223,6 +320,60 @@ mat-chip {
   &.status-cancelled {
     background-color: #f5f5f5;
     color: #616161;
+  }
+}
+
+// Chips de status
+.status-current {
+  background-color: #e8f5e8 !important;
+  color: #2e7d32 !important;
+  
+  mat-icon {
+    color: #4caf50 !important;
+    margin-right: 4px;
+  }
+}
+
+.status-overdue {
+  background-color: #ffebee !important;
+  color: #c62828 !important;
+  
+  mat-icon {
+    color: #f44336 !important;
+    margin-right: 4px;
+  }
+}
+
+// Animações para valores
+.value-info,
+.date-info {
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+// Melhorias visuais para filtros
+.filters-card {
+  .mat-mdc-form-field {
+    .mat-mdc-text-field-wrapper {
+      transition: all 0.2s ease;
+      
+      &:hover {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+    }
+  }
+}
+
+// Indicadores visuais para filtros ativos
+.filter-field {
+  &.ng-dirty {
+    .mat-mdc-form-field-outline {
+      border-color: var(--primary-color) !important;
+      border-width: 2px !important;
+    }
   }
 }
 

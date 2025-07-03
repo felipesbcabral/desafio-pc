@@ -70,14 +70,21 @@ export class DebtTitleList implements OnInit, OnDestroy {
   sortField = 'dueDate';
   sortDirection: 'asc' | 'desc' = 'desc';
 
-  // Filtros
+  // Propriedades para filtros
   searchTerm = '';
   overdueFilter = '';
+  dateRangeFilter = { start: '', end: '' };
+  valueRangeFilter = { min: null, max: null };
+  
   overdueOptions = [
     { value: '', label: 'Todos' },
     { value: 'overdue', label: 'Em Atraso' },
     { value: 'current', label: 'Em Dia' }
   ];
+  
+  // Propriedades para formatação
+  currencyCode = 'BRL';
+  locale = 'pt-BR';
 
   // Estados
   isLoading = false;
@@ -164,6 +171,26 @@ export class DebtTitleList implements OnInit, OnDestroy {
         filtered = filtered.filter(item => !item.isOverdue);
       }
     }
+    
+    // Filtro por faixa de datas
+    if (this.dateRangeFilter.start) {
+      const startDate = new Date(this.dateRangeFilter.start);
+      filtered = filtered.filter(item => new Date(item.dueDate) >= startDate);
+    }
+    
+    if (this.dateRangeFilter.end) {
+      const endDate = new Date(this.dateRangeFilter.end);
+      filtered = filtered.filter(item => new Date(item.dueDate) <= endDate);
+    }
+    
+    // Filtro por faixa de valores
+    if (this.valueRangeFilter.min !== null && this.valueRangeFilter.min > 0) {
+      filtered = filtered.filter(item => item.updatedValue >= this.valueRangeFilter.min!);
+    }
+    
+    if (this.valueRangeFilter.max !== null && this.valueRangeFilter.max > 0) {
+      filtered = filtered.filter(item => item.updatedValue <= this.valueRangeFilter.max!);
+    }
 
     // Ordenação
     filtered.sort((a, b) => {
@@ -238,7 +265,73 @@ export class DebtTitleList implements OnInit, OnDestroy {
   clearFilters(): void {
     this.searchTerm = '';
     this.overdueFilter = '';
+    this.dateRangeFilter = { start: '', end: '' };
+    this.valueRangeFilter = { min: null, max: null };
     this.applyFilters();
+  }
+  
+  /**
+   * Verifica se há filtros ativos
+   */
+  hasActiveFilters(): boolean {
+    return !!(this.searchTerm || 
+             this.overdueFilter || 
+             this.dateRangeFilter.start || 
+             this.dateRangeFilter.end || 
+             this.valueRangeFilter.min || 
+             this.valueRangeFilter.max);
+  }
+  
+  /**
+   * Manipula mudanças no filtro de data
+   */
+  onDateRangeChange(): void {
+    this.applyFilters();
+  }
+  
+  /**
+   * Manipula mudanças no filtro de valor
+   */
+  onValueRangeChange(): void {
+    this.applyFilters();
+  }
+  
+  /**
+   * Exporta dados filtrados para CSV
+   */
+  exportToCSV(): void {
+    if (this.filteredDebtTitles.length === 0) {
+      this.notificationService.warning('Não há dados para exportar');
+      return;
+    }
+    
+    const headers = ['Número', 'Devedor', 'Documento', 'Valor Original', 'Valor Atualizado', 'Vencimento', 'Status', 'Dias Atraso'];
+    const csvData = this.filteredDebtTitles.map(item => [
+      item.titleNumber,
+      item.debtorName,
+      item.debtorDocument,
+      item.originalValue.toString(),
+      item.updatedValue.toString(),
+      this.formatDate(item.dueDate),
+      item.isOverdue ? 'Em Atraso' : 'Em Dia',
+      item.daysOverdue.toString()
+    ]);
+    
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `titulos-divida-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    this.notificationService.success('Dados exportados com sucesso');
   }
 
   /**
@@ -272,20 +365,74 @@ export class DebtTitleList implements OnInit, OnDestroy {
   }
 
   /**
-   * Formata valor monetário
+   * Formata valor monetário com opções avançadas
    */
-  formatCurrency(value: number): string {
-    return new Intl.NumberFormat('pt-BR', {
+  formatCurrency(value: number, compact = false): string {
+    const options: Intl.NumberFormatOptions = {
       style: 'currency',
-      currency: 'BRL'
-    }).format(value);
+      currency: this.currencyCode,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    };
+    
+    if (compact && value >= 1000) {
+      options.notation = 'compact';
+      options.compactDisplay = 'short';
+    }
+    
+    return new Intl.NumberFormat(this.locale, options).format(value);
   }
 
   /**
-   * Formata data
+   * Formata data com opções avançadas
    */
-  formatDate(date: string): string {
-    return new Date(date).toLocaleDateString('pt-BR');
+  formatDate(date: string, format: 'short' | 'medium' | 'long' = 'short'): string {
+    const dateObj = new Date(date);
+    
+    switch (format) {
+      case 'short':
+        return dateObj.toLocaleDateString(this.locale);
+      case 'medium':
+        return dateObj.toLocaleDateString(this.locale, {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+      case 'long':
+        return dateObj.toLocaleDateString(this.locale, {
+          weekday: 'long',
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric'
+        });
+      default:
+        return dateObj.toLocaleDateString(this.locale);
+    }
+  }
+  
+  /**
+   * Calcula dias em atraso com formatação
+   */
+  formatOverdueDays(daysOverdue: number): string {
+    if (daysOverdue <= 0) return 'Em dia';
+    if (daysOverdue === 1) return '1 dia';
+    return `${daysOverdue} dias`;
+  }
+  
+  /**
+   * Formata status com cor
+   */
+  getStatusInfo(debtTitle: DebtTitle): { text: string; class: string } {
+    if (debtTitle.isOverdue) {
+      return {
+        text: `Atraso: ${this.formatOverdueDays(debtTitle.daysOverdue)}`,
+        class: 'status-overdue'
+      };
+    }
+    return {
+      text: 'Em dia',
+      class: 'status-current'
+    };
   }
 
   /**

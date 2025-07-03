@@ -1,0 +1,21 @@
+<div class="notification-container">
+  <div 
+    *ngFor="let notification of notifications$ | async; trackBy: trackByFn"
+    class="notification"
+    [ngClass]="'notification-' + notification.type"
+    [@slideIn]>
+    
+    <div class="notification-content">
+      <mat-icon class="notification-icon">{{ getIcon(notification.type) }}</mat-icon>
+      <span class="notification-message">{{ notification.message }}</span>
+    </div>
+    
+    <button 
+      mat-icon-button 
+      class="notification-close"
+      (click)="removeNotification(notification.id)"
+      aria-label="Fechar notificação">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+</div>

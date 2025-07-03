@@ -1,0 +1,39 @@
+.header-toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.app-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-left: 16px;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-button {
+  margin-right: 8px;
+}
+
+@media (max-width: 768px) {
+  .app-title {
+    font-size: 1.1rem;
+    margin-left: 8px;
+  }
+  
+  .menu-button {
+    margin-right: 4px;
+  }
+}

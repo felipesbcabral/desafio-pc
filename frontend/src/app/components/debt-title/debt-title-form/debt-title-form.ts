@@ -43,6 +43,7 @@ export class DebtTitleForm implements OnInit {
   debtTitleForm: FormGroup;
   isEditMode = false;
   debtTitleId: string | null = null;
+  previewInstallments: any[] = [];
 
   constructor() {
     this.debtTitleForm = this.fb.group({
@@ -221,6 +222,10 @@ export class DebtTitleForm implements OnInit {
     if (control?.value) {
       const numericValue = this.parseToNumber(control.value);
       control.setValue(this.formatCurrency(numericValue.toString().replace('.', ',')));
+      
+      if (fieldName === 'originalValue') {
+        this.updateInstallmentPreview();
+      }
     }
   }
 
@@ -240,6 +245,104 @@ export class DebtTitleForm implements OnInit {
     if (!value) return 0;
     const cleanValue = value.replace(/[^\d,]/g, '').replace(',', '.');
     return parseFloat(cleanValue) || 0;
+  }
+
+  onPercentageInput(event: any, fieldName: string): void {
+    const value = event.target.value.replace(/[^\d,]/g, '');
+    const formattedValue = this.formatPercentage(value);
+    
+    this.debtTitleForm.patchValue({
+      [fieldName]: formattedValue
+    });
+    
+    this.updateInstallmentPreview();
+  }
+
+  onPercentageBlur(fieldName: string): void {
+    const control = this.debtTitleForm.get(fieldName);
+    if (control?.value) {
+      const numericValue = this.parsePercentageToNumber(control.value);
+      control.setValue(this.formatPercentage(numericValue.toString().replace('.', ',')));
+    }
+  }
+
+  onInstallmentCountChange(): void {
+    this.updateInstallmentPreview();
+  }
+
+  onDateChange(): void {
+    this.updateInstallmentPreview();
+  }
+
+  private formatPercentage(value: string): string {
+    const numbers = value.replace(/\D/g, '');
+    if (!numbers) return '';
+    
+    const formatted = (parseInt(numbers) / 100).toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    
+    return formatted;
+  }
+
+  private parsePercentageToNumber(value: string): number {
+    if (!value) return 0;
+    const cleanValue = value.replace(/[^\d,]/g, '').replace(',', '.');
+    return parseFloat(cleanValue) || 0;
+  }
+
+  private updateInstallmentPreview(): void {
+    const formValue = this.debtTitleForm.value;
+    
+    if (formValue.originalValue && formValue.installmentCount && formValue.dueDate) {
+      const originalValue = this.parseToNumber(formValue.originalValue);
+      const installmentCount = parseInt(formValue.installmentCount) || 1;
+      const dueDate = new Date(formValue.dueDate);
+      const interestRate = this.parsePercentageToNumber(formValue.interestRatePerDay) || 0;
+      const penaltyRate = this.parsePercentageToNumber(formValue.penaltyRate) || 0;
+      
+      if (originalValue > 0 && installmentCount > 0 && !isNaN(dueDate.getTime())) {
+        this.previewInstallments = this.generateInstallmentPreview(
+          originalValue,
+          dueDate,
+          installmentCount,
+          interestRate,
+          penaltyRate
+        );
+      } else {
+        this.previewInstallments = [];
+      }
+    } else {
+      this.previewInstallments = [];
+    }
+  }
+
+  private generateInstallmentPreview(originalValue: number, dueDate: Date, installmentCount: number, interestRate: number, penaltyRate: number): any[] {
+    const installments = [];
+    const installmentValue = originalValue / installmentCount;
+    
+    for (let i = 0; i < installmentCount; i++) {
+      const installmentDueDate = new Date(dueDate);
+      installmentDueDate.setMonth(installmentDueDate.getMonth() + i);
+      
+      installments.push({
+        number: i + 1,
+        amount: installmentValue,
+        dueDate: installmentDueDate,
+        status: 'Pendente'
+      });
+    }
+    
+    return installments;
+  }
+
+  getTotalValue(): number {
+    return this.previewInstallments.reduce((total, installment) => total + installment.amount, 0);
+  }
+
+  getInstallmentValue(): number {
+    return this.previewInstallments.length > 0 ? this.previewInstallments[0].amount : 0;
   }
 
   private documentValidator(control: any) {

@@ -62,18 +62,19 @@ public class Installment
         return (DateTime.Now.Date - DueDate.Date).Days;
     }
 
-    public decimal CalculateInterest(decimal dailyInterestRate)
+    public decimal CalculateInterest(decimal monthlyInterestRate)
     {
         var daysOverdue = GetDaysOverdue();
         if (daysOverdue <= 0)
             return 0;
 
-        return Value * dailyInterestRate * daysOverdue;
+        // Fórmula correta: (Taxa Juros / 30) × Dias Atraso × Valor da Parcela
+        return (monthlyInterestRate / 30) * daysOverdue * Value;
     }
 
-    public decimal CalculateUpdatedValue(decimal dailyInterestRate, decimal penaltyRate)
+    public decimal CalculateUpdatedValue(decimal monthlyInterestRate, decimal penaltyRate)
     {
-        var interest = CalculateInterest(dailyInterestRate);
+        var interest = CalculateInterest(monthlyInterestRate);
         var penalty = IsOverdue() ? Value * (penaltyRate / 100) : 0;
         return Value + interest + penalty;
     }

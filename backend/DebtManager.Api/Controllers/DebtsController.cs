@@ -150,6 +150,9 @@ public class DebtsController : ControllerBase
 
     private DebtTitleResponse MapToResponse(DebtTitle debtTitle)
     {
+        // Usando a taxa de juros mensal (InterestRatePerDay * 30) para o cálculo correto
+        var monthlyInterestRate = debtTitle.InterestRatePerDay * 30;
+        
         var installments = debtTitle.Installments.Select(i => new InstallmentResponse
         {
             Id = i.Id,
@@ -160,8 +163,8 @@ public class DebtsController : ControllerBase
             PaidAt = i.PaidAt,
             IsOverdue = i.IsOverdue(),
             DaysOverdue = i.IsOverdue() ? (DateTime.Now.Date - i.DueDate.Date).Days : 0,
-            InterestAmount = i.CalculateInterest(debtTitle.InterestRatePerDay / 100),
-            UpdatedValue = i.CalculateUpdatedValue(debtTitle.InterestRatePerDay / 100, debtTitle.PenaltyRate)
+            InterestAmount = i.CalculateInterest(monthlyInterestRate),
+            UpdatedValue = i.CalculateUpdatedValue(monthlyInterestRate, debtTitle.PenaltyRate)
         }).ToList();
 
         var maxDaysOverdue = installments.Any() ? installments.Max(i => i.DaysOverdue) : 

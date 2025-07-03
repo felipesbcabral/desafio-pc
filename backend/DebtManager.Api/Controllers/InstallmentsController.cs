@@ -203,6 +203,9 @@ public class InstallmentsController : ControllerBase
 
     private InstallmentResponse MapToResponse(Installment installment, DebtTitle debtTitle)
     {
+        // Usando a taxa de juros mensal (InterestRatePerDay * 30) para o cálculo correto
+        var monthlyInterestRate = debtTitle.InterestRatePerDay * 30;
+        
         return new InstallmentResponse
         {
             Id = installment.Id,
@@ -213,8 +216,8 @@ public class InstallmentsController : ControllerBase
             PaidAt = installment.PaidAt,
             IsOverdue = installment.IsOverdue(),
             DaysOverdue = installment.IsOverdue() ? (DateTime.Now.Date - installment.DueDate.Date).Days : 0,
-            InterestAmount = installment.CalculateInterest(debtTitle.InterestRatePerDay / 100),
-            UpdatedValue = installment.CalculateUpdatedValue(debtTitle.InterestRatePerDay / 100, debtTitle.PenaltyRate)
+            InterestAmount = installment.CalculateInterest(monthlyInterestRate),
+            UpdatedValue = installment.CalculateUpdatedValue(monthlyInterestRate, debtTitle.PenaltyRate)
         };
     }
 }

@@ -361,3 +361,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/PLAN.md
+/TODO.md

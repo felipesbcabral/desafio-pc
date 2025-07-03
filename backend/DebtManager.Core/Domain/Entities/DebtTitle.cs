@@ -13,9 +13,7 @@ public class DebtTitle
     public DateTime CreatedAt { get; private set; }
     public List<Installment> Installments { get; private set; } = [];
 
-    // Propriedades para compatibilidade com EF Core
-    public string DebtorName => Debtor?.Name ?? string.Empty;
-    public string DebtorDocument => Debtor?.Document.Value ?? string.Empty;
+    // Propriedades removidas - agora usando OwnsOne para mapear o Value Object Debtor
 
     // Construtor privado para EF Core
     private DebtTitle() { }
@@ -43,8 +41,15 @@ public class DebtTitle
         decimal interestRatePerDay,
         string debtorName,
         string debtorDocument)
-        : this(originalValue, dueDate, interestRatePerDay, new Debtor(debtorName, debtorDocument))
     {
+        Id = Guid.NewGuid();
+        OriginalValue = originalValue;
+        DueDate = dueDate;
+        InterestRatePerDay = interestRatePerDay;
+        Debtor = new Debtor(debtorName, debtorDocument);
+        CreatedAt = DateTime.UtcNow;
+
+        ValidateEntity();
     }
 
     public decimal CalculateUpdatedValue()

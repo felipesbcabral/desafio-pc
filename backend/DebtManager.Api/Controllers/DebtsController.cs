@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using DebtManager.Core.Application.Services;
 using DebtManager.Core.Domain.Entities;
+using DebtManager.Api.DTOs;
 using System.ComponentModel.DataAnnotations;
 
 namespace DebtManager.Api.Controllers;
@@ -14,10 +15,12 @@ namespace DebtManager.Api.Controllers;
 public class DebtsController : ControllerBase
 {
     private readonly ILogger<DebtsController> _logger;
+    private readonly DebtTitleService _debtTitleService;
 
-    public DebtsController(ILogger<DebtsController> logger)
+    public DebtsController(ILogger<DebtsController> logger, DebtTitleService debtTitleService)
     {
         _logger = logger;
+        _debtTitleService = debtTitleService;
     }
 
     /// <summary>
@@ -33,23 +36,21 @@ public class DebtsController : ControllerBase
     {
         try
         {
-            // Implementação temporária para demonstração
-            var mockDebts = new List<DebtTitleResponse>
+            var debtTitles = await _debtTitleService.GetAllDebtTitlesAsync();
+            var response = debtTitles.Select(debt => new DebtTitleResponse
             {
-                new DebtTitleResponse
-                {
-                    Id = Guid.NewGuid(),
-                    OriginalValue = 1000.00m,
-                    UpdatedValue = 1050.00m,
-                    DueDate = DateTime.Now.AddDays(-10),
-                    InterestRatePerDay = 0.1m,
-                    DebtorName = "João Silva",
-                    DebtorDocument = "123.456.789-00",
-                    CreatedAt = DateTime.Now.AddDays(-30)
-                }
-            };
+                Id = debt.Id,
+                OriginalValue = debt.OriginalValue,
+                UpdatedValue = debt.CalculateUpdatedValue(),
+                DueDate = debt.DueDate,
+                InterestRatePerDay = debt.InterestRatePerDay,
+                DebtorName = debt.Debtor.Name,
+                DebtorDocument = debt.Debtor.Document.Value,
+                DebtorDocumentType = debt.Debtor.Document.Type.ToString(),
+                CreatedAt = debt.CreatedAt
+            });
 
-            return Ok(mockDebts);
+            return Ok(response);
         }
         catch (Exception ex)
         {
@@ -74,24 +75,27 @@ public class DebtsController : ControllerBase
     {
         try
         {
-            // Implementação temporária
             if (id == Guid.Empty)
                 return BadRequest("ID inválido");
 
-            // Mock data
-            var mockDebt = new DebtTitleResponse
+            var debtTitle = await _debtTitleService.GetByIdAsync(id);
+            if (debtTitle == null)
+                return NotFound($"Título de dívida com ID {id} não encontrado");
+
+            var response = new DebtTitleResponse
             {
-                Id = id,
-                OriginalValue = 1000.00m,
-                UpdatedValue = 1050.00m,
-                DueDate = DateTime.Now.AddDays(-10),
-                InterestRatePerDay = 0.1m,
-                DebtorName = "João Silva",
-                DebtorDocument = "123.456.789-00",
-                CreatedAt = DateTime.Now.AddDays(-30)
+                Id = debtTitle.Id,
+                OriginalValue = debtTitle.OriginalValue,
+                UpdatedValue = debtTitle.CalculateUpdatedValue(),
+                DueDate = debtTitle.DueDate,
+                InterestRatePerDay = debtTitle.InterestRatePerDay,
+                DebtorName = debtTitle.Debtor.Name,
+                DebtorDocument = debtTitle.Debtor.Document.Value,
+                DebtorDocumentType = debtTitle.Debtor.Document.Type.ToString(),
+                CreatedAt = debtTitle.CreatedAt
             };
 
-            return Ok(mockDebt);
+            return Ok(response);
         }
         catch (Exception ex)
         {
@@ -119,125 +123,37 @@ public class DebtsController : ControllerBase
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Implementação temporária
-            var createdDebt = new DebtTitleResponse
+            var createdDebt = await _debtTitleService.CreateDebtTitleAsync(
+                request.OriginalValue,
+                request.DueDate,
+                request.InterestRatePerDay,
+                request.DebtorName,
+                request.DebtorDocument);
+
+            var response = new DebtTitleResponse
             {
-                Id = Guid.NewGuid(),
-                OriginalValue = request.OriginalValue,
-                UpdatedValue = request.OriginalValue, // Sem juros ainda
-                DueDate = request.DueDate,
-                InterestRatePerDay = request.InterestRatePerDay,
-                DebtorName = request.DebtorName,
-                DebtorDocument = request.DebtorDocument,
-                CreatedAt = DateTime.UtcNow
+                Id = createdDebt.Id,
+                OriginalValue = createdDebt.OriginalValue,
+                UpdatedValue = createdDebt.CalculateUpdatedValue(),
+                DueDate = createdDebt.DueDate,
+                InterestRatePerDay = createdDebt.InterestRatePerDay,
+                DebtorName = createdDebt.Debtor.Name,
+                DebtorDocument = createdDebt.Debtor.Document.Value,
+                DebtorDocumentType = createdDebt.Debtor.Document.Type.ToString(),
+                CreatedAt = createdDebt.CreatedAt
             };
 
-            return CreatedAtAction(nameof(GetDebtById), new { id = createdDebt.Id }, createdDebt);
+            return CreatedAtAction(nameof(GetDebtById), new { id = response.Id }, response);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Dados inválidos ao criar título de dívida: {Message}", ex.Message);
+            return BadRequest(new { error = ex.Message });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao criar título de dívida");
-            return StatusCode(500, "Erro interno do servidor");
+            _logger.LogError(ex, "Erro interno ao criar título de dívida");
+            return StatusCode(500, new { error = "Erro interno do servidor" });
         }
     }
-}
-
-/// <summary>
-/// Dados para criação de um título de dívida
-/// </summary>
-public class CreateDebtTitleRequest
-{
-    /// <summary>
-    /// Valor original do título
-    /// </summary>
-    /// <example>1000.00</example>
-    [Required(ErrorMessage = "Valor original é obrigatório")]
-    [Range(0.01, double.MaxValue, ErrorMessage = "Valor deve ser maior que zero")]
-    public decimal OriginalValue { get; set; }
-
-    /// <summary>
-    /// Data de vencimento
-    /// </summary>
-    /// <example>2024-12-31</example>
-    [Required(ErrorMessage = "Data de vencimento é obrigatória")]
-    public DateTime DueDate { get; set; }
-
-    /// <summary>
-    /// Taxa de juros por dia (em porcentagem)
-    /// </summary>
-    /// <example>0.1</example>
-    [Required(ErrorMessage = "Taxa de juros é obrigatória")]
-    [Range(0, 100, ErrorMessage = "Taxa deve estar entre 0 e 100")]
-    public decimal InterestRatePerDay { get; set; }
-
-    /// <summary>
-    /// Nome do devedor
-    /// </summary>
-    /// <example>João Silva</example>
-    [Required(ErrorMessage = "Nome do devedor é obrigatório")]
-    [StringLength(200, MinimumLength = 2, ErrorMessage = "Nome deve ter entre 2 e 200 caracteres")]
-    public string DebtorName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Documento do devedor (CPF ou CNPJ)
-    /// </summary>
-    /// <example>123.456.789-00</example>
-    [Required(ErrorMessage = "Documento do devedor é obrigatório")]
-    public string DebtorDocument { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Resposta com dados do título de dívida
-/// </summary>
-public class DebtTitleResponse
-{
-    /// <summary>
-    /// ID único do título
-    /// </summary>
-    public Guid Id { get; set; }
-
-    /// <summary>
-    /// Valor original do título
-    /// </summary>
-    public decimal OriginalValue { get; set; }
-
-    /// <summary>
-    /// Valor atualizado com juros
-    /// </summary>
-    public decimal UpdatedValue { get; set; }
-
-    /// <summary>
-    /// Data de vencimento
-    /// </summary>
-    public DateTime DueDate { get; set; }
-
-    /// <summary>
-    /// Taxa de juros por dia
-    /// </summary>
-    public decimal InterestRatePerDay { get; set; }
-
-    /// <summary>
-    /// Nome do devedor
-    /// </summary>
-    public string DebtorName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Documento do devedor
-    /// </summary>
-    public string DebtorDocument { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Data de criação
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
-
-    /// <summary>
-    /// Indica se o título está em atraso
-    /// </summary>
-    public bool IsOverdue => DateTime.Now.Date > DueDate.Date;
-
-    /// <summary>
-    /// Dias em atraso
-    /// </summary>
-    public int DaysOverdue => IsOverdue ? (DateTime.Now.Date - DueDate.Date).Days : 0;
 }

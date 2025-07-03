@@ -61,12 +61,22 @@ public class DebtTitleResponse
     public DateTime CreatedAt { get; set; }
 
     /// <summary>
-    /// Indica se o título está em atraso
+    /// Quantidade de parcelas
     /// </summary>
-    public bool IsOverdue => DateTime.Now.Date > DueDate.Date;
+    public int InstallmentCount { get; set; }
 
     /// <summary>
-    /// Dias em atraso
+    /// Dias em atraso (maior atraso entre todas as parcelas)
     /// </summary>
-    public int DaysOverdue => IsOverdue ? (DateTime.Now.Date - DueDate.Date).Days : 0;
+    public int DaysOverdue { get; set; }
+
+    /// <summary>
+    /// Indica se o título está em atraso
+    /// </summary>
+    public bool IsOverdue => DaysOverdue > 0;
+
+    /// <summary>
+    /// Lista de parcelas
+    /// </summary>
+    public List<InstallmentResponse> Installments { get; set; } = new();
 }

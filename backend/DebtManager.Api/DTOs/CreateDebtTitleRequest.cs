@@ -16,12 +16,11 @@ public class CreateDebtTitleRequest
     public string TitleNumber { get; set; } = string.Empty;
 
     /// <summary>
-    /// Valor original do título
+    /// Valor original do título (opcional - será calculado automaticamente pela soma das parcelas se não informado)
     /// </summary>
     /// <example>1000.00</example>
-    [Required(ErrorMessage = "Valor original é obrigatório")]
     [Range(0.01, double.MaxValue, ErrorMessage = "Valor deve ser maior que zero")]
-    public decimal OriginalValue { get; set; }
+    public decimal? OriginalValue { get; set; }
 
     /// <summary>
     /// Data de vencimento
@@ -60,4 +59,11 @@ public class CreateDebtTitleRequest
     /// <example>12345678901</example>
     [Required(ErrorMessage = "Documento do devedor é obrigatório")]
     public string DebtorDocument { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Lista de parcelas do título
+    /// </summary>
+    [Required(ErrorMessage = "Pelo menos uma parcela é obrigatória")]
+    [MinLength(1, ErrorMessage = "Deve haver pelo menos uma parcela")]
+    public List<InstallmentRequest> Installments { get; set; } = new();
 }

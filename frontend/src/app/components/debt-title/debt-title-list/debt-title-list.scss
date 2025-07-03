@@ -1,0 +1,428 @@
+.debt-title-list-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: calc(100vh - 120px);
+}
+
+// Cabeçalho
+.list-header {
+  margin-bottom: 24px;
+  
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  
+  .page-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    font-size: 28px;
+    font-weight: 500;
+    color: #1976d2;
+    
+    mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+    }
+  }
+  
+  .header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+}
+
+// Cards
+.filters-card,
+.table-card {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  mat-card-content {
+    padding: 24px;
+  }
+}
+
+// Filtros
+.filters-container {
+  .filter-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+  
+  .search-field {
+    flex: 1;
+    min-width: 300px;
+  }
+  
+  .status-field {
+    min-width: 200px;
+  }
+  
+  .filter-actions {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+// Estados de carregamento e erro
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    color: #666;
+  }
+  
+  p {
+    margin: 8px 0 16px;
+    color: #666;
+    font-size: 16px;
+  }
+}
+
+.error-container {
+  mat-icon {
+    color: #f44336;
+  }
+}
+
+// Informações da tabela
+.table-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 0 8px;
+  
+  .results-count {
+    color: #666;
+    font-size: 14px;
+  }
+}
+
+// Tabela
+.table-container {
+  .debt-titles-table {
+    width: 100%;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    
+    .mat-mdc-header-row {
+      background-color: #f5f5f5;
+      
+      .mat-mdc-header-cell {
+        font-weight: 600;
+        color: #333;
+        border-bottom: 2px solid #e0e0e0;
+      }
+    }
+    
+    .mat-mdc-row {
+      transition: background-color 0.2s ease;
+      
+      &:hover {
+        background-color: #f9f9f9;
+      }
+      
+      &:nth-child(even) {
+        background-color: #fafafa;
+      }
+    }
+    
+    .mat-mdc-cell {
+      padding: 16px 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+  }
+}
+
+// Colunas específicas
+.title-number {
+  font-weight: 600;
+  color: #1976d2;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.debtor-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  
+  .debtor-name {
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .debtor-document {
+    font-size: 12px;
+    color: #666;
+    font-family: 'Roboto Mono', monospace;
+  }
+}
+
+.document {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 14px;
+  color: #333;
+}
+
+.currency-value {
+  font-weight: 600;
+  color: #2e7d32;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.due-date {
+  font-family: 'Roboto Mono', monospace;
+  color: #333;
+}
+
+// Status chips
+mat-chip {
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 16px;
+  
+  &.status-paid {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+  }
+  
+  &.status-pending {
+    background-color: #fff3e0;
+    color: #f57c00;
+  }
+  
+  &.status-overdue {
+    background-color: #ffebee;
+    color: #d32f2f;
+  }
+  
+  &.status-cancelled {
+    background-color: #f5f5f5;
+    color: #616161;
+  }
+}
+
+// Ações
+.actions-header {
+  text-align: center;
+  width: 140px;
+}
+
+.actions-cell {
+  text-align: center;
+  
+  .action-buttons {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    
+    button {
+      width: 36px;
+      height: 36px;
+      
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+}
+
+// Mensagem sem dados
+.no-data-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+  
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: #ccc;
+    margin-bottom: 16px;
+  }
+  
+  h3 {
+    margin: 0 0 16px;
+    color: #666;
+    font-weight: 400;
+  }
+  
+  p {
+    margin: 8px 0;
+    color: #999;
+    line-height: 1.5;
+  }
+  
+  .create-first-button {
+    margin-top: 16px;
+  }
+}
+
+// Paginação
+mat-paginator {
+  border-top: 1px solid #e0e0e0;
+  margin-top: 16px;
+  background: transparent;
+}
+
+// Responsividade
+@media (max-width: 1200px) {
+  .debt-title-list-container {
+    padding: 16px;
+  }
+  
+  .filters-container .filter-row {
+    .search-field {
+      min-width: 250px;
+    }
+    
+    .status-field {
+      min-width: 150px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .list-header {
+    .header-content {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .page-title {
+      justify-content: center;
+      font-size: 24px;
+    }
+    
+    .header-actions {
+      justify-content: center;
+    }
+  }
+  
+  .filters-container .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+    
+    .search-field,
+    .status-field {
+      min-width: unset;
+    }
+    
+    .filter-actions {
+      justify-content: center;
+    }
+  }
+  
+  // Esconder algumas colunas em mobile
+  .debt-titles-table {
+    .mat-column-debtorDocument {
+      display: none;
+    }
+  }
+  
+  .actions-cell .action-buttons {
+    flex-direction: column;
+    gap: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .debt-title-list-container {
+    padding: 12px;
+  }
+  
+  .filters-card mat-card-content,
+  .table-card mat-card-content {
+    padding: 16px;
+  }
+  
+  // Esconder mais colunas em telas muito pequenas
+  .debt-titles-table {
+    .mat-column-originalValue {
+      display: none;
+    }
+  }
+  
+  .no-data-container {
+    padding: 32px 16px;
+    
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+    }
+  }
+}
+
+// Animações
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.debt-title-list-container {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.mat-mdc-row {
+  animation: fadeIn 0.2s ease-out;
+}
+
+// Melhorias de acessibilidade
+.debt-titles-table {
+  .mat-mdc-header-cell,
+  .mat-mdc-cell {
+    &:focus {
+      outline: 2px solid #1976d2;
+      outline-offset: -2px;
+    }
+  }
+}
+
+button {
+  &:focus {
+    outline: 2px solid #1976d2;
+    outline-offset: 2px;
+  }
+}
+
+// Estados de loading para botões
+button[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

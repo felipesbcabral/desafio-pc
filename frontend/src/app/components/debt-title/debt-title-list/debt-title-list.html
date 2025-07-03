@@ -1,1 +1,237 @@
-<p>debt-title-list works!</p>
+<div class="debt-title-list-container">
+  <!-- Cabeçalho -->
+  <div class="list-header">
+    <div class="header-content">
+      <h2 class="page-title">
+        <mat-icon>list_alt</mat-icon>
+        Títulos de Dívida
+      </h2>
+      <div class="header-actions">
+        <button mat-raised-button 
+                color="primary" 
+                routerLink="/debt-titles/new"
+                matTooltip="Criar novo título">
+          <mat-icon>add</mat-icon>
+          Novo Título
+        </button>
+        <button mat-icon-button 
+                (click)="refresh()"
+                matTooltip="Atualizar lista"
+                [disabled]="isLoading">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-container">
+        <div class="filter-row">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Buscar</mat-label>
+            <input matInput 
+                   [value]="searchTerm"
+                   (input)="onSearchChange($any($event.target)?.value || '')"
+                   placeholder="Número, nome ou documento do devedor"
+                   maxlength="100">
+            <mat-icon matSuffix>search</mat-icon>
+            <mat-hint>Busque por número do título, nome ou documento</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="status-field">
+            <mat-label>Status</mat-label>
+            <mat-select [(value)]="overdueFilter" 
+                        (selectionChange)="onOverdueFilterChange()">
+              <mat-option *ngFor="let option of overdueOptions" 
+                          [value]="option.value">
+                {{ option.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <div class="filter-actions">
+            <button mat-stroked-button 
+                    (click)="clearFilters()"
+                    matTooltip="Limpar filtros"
+                    [disabled]="!searchTerm && !overdueFilter">
+              <mat-icon>clear</mat-icon>
+              Limpar
+            </button>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tabela -->
+  <mat-card class="table-card">
+    <mat-card-content>
+      <!-- Loading Spinner -->
+      <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Carregando títulos de dívida...</p>
+      </div>
+
+      <!-- Mensagem de Erro -->
+      <div *ngIf="hasError && !isLoading" class="error-container">
+        <mat-icon color="warn">error</mat-icon>
+        <p>{{ errorMessage }}</p>
+        <button mat-raised-button color="primary" (click)="refresh()">
+          <mat-icon>refresh</mat-icon>
+          Tentar Novamente
+        </button>
+      </div>
+
+      <!-- Tabela de Dados -->
+      <div *ngIf="!isLoading && !hasError" class="table-container">
+        <!-- Informações da Lista -->
+        <div class="table-info">
+          <span class="results-count">
+            Mostrando {{ getPaginatedData().length }} de {{ totalItems }} títulos
+          </span>
+        </div>
+
+        <!-- Tabela -->
+        <table mat-table 
+               [dataSource]="getPaginatedData()" 
+               matSort
+               (matSortChange)="onSortChange($event)"
+               class="debt-titles-table">
+
+          <!-- Coluna Número do Título -->
+          <ng-container matColumnDef="titleNumber">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="titleNumber">
+              Número do Título
+            </th>
+            <td mat-cell *matCellDef="let element">
+              <span class="title-number">{{ element.titleNumber }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Coluna Nome do Devedor -->
+          <ng-container matColumnDef="debtorName">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="debtorName">
+              Devedor
+            </th>
+            <td mat-cell *matCellDef="let element">
+              <div class="debtor-info">
+                <span class="debtor-name">{{ element.debtorName }}</span>
+                <span class="debtor-document">{{ element.debtorDocument }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Coluna Documento -->
+          <ng-container matColumnDef="debtorDocument">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="debtorDocument">
+              Documento
+            </th>
+            <td mat-cell *matCellDef="let element">
+              <span class="document">{{ element.debtorDocument }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Coluna Valor Original -->
+          <ng-container matColumnDef="originalValue">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="originalValue">
+              Valor Original
+            </th>
+            <td mat-cell *matCellDef="let element">
+              <span class="currency-value">{{ formatCurrency(element.originalValue) }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Coluna Data de Vencimento -->
+          <ng-container matColumnDef="dueDate">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="dueDate">
+              Vencimento
+            </th>
+            <td mat-cell *matCellDef="let element">
+              <span class="due-date">{{ formatDate(element.dueDate) }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Coluna Status -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="status">
+              Status
+            </th>
+            <td mat-cell *matCellDef="let element">
+              <mat-chip [class]="getStatusClass(element.status)">
+                {{ getStatusText(element.status) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Coluna Ações -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="actions-header">
+              Ações
+            </th>
+            <td mat-cell *matCellDef="let element" class="actions-cell">
+              <div class="action-buttons">
+                <button mat-icon-button 
+                        [routerLink]="['/debt-titles', element.id]"
+                        matTooltip="Visualizar detalhes"
+                        color="primary">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button 
+                        [routerLink]="['/debt-titles', element.id, 'edit']"
+                        matTooltip="Editar título"
+                        color="accent">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button 
+                        (click)="deleteDebtTitle(element.id)"
+                        matTooltip="Excluir título"
+                        color="warn">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <!-- Mensagem quando não há dados -->
+        <div *ngIf="filteredDebtTitles.length === 0" class="no-data-container">
+          <mat-icon>inbox</mat-icon>
+          <h3>Nenhum título encontrado</h3>
+          <p *ngIf="searchTerm || overdueFilter">
+            Tente ajustar os filtros ou 
+            <button mat-button color="primary" (click)="clearFilters()">
+              limpar todos os filtros
+            </button>
+          </p>
+          <p *ngIf="!searchTerm && !overdueFilter">
+            Ainda não há títulos de dívida cadastrados.
+            <br>
+            <button mat-raised-button 
+                    color="primary" 
+                    routerLink="/debt-titles/new"
+                    class="create-first-button">
+              <mat-icon>add</mat-icon>
+              Criar Primeiro Título
+            </button>
+          </p>
+        </div>
+
+        <!-- Paginação -->
+        <mat-paginator *ngIf="filteredDebtTitles.length > 0"
+                       [length]="totalItems"
+                       [pageSize]="pageSize"
+                       [pageIndex]="pageIndex"
+                       [pageSizeOptions]="pageSizeOptions"
+                       [showFirstLastButtons]="true"
+                       (page)="onPageChange($event)"
+                       aria-label="Selecionar página">
+        </mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,1 +1,426 @@
-<p>debt-title-list works!</p>
+<div class="debt-title-list-container">
+  <!-- Cabeçalho -->
+  <div class="list-header">
+    <div class="header-content">
+      <h2 class="page-title">
+        <mat-icon>list_alt</mat-icon>
+        Títulos de Dívida
+      </h2>
+      <div class="header-actions">
+        <button mat-raised-button 
+                color="primary" 
+                routerLink="/debt-titles/new"
+                matTooltip="Criar novo título de dívida">
+          <mat-icon>add</mat-icon>
+          Novo Título
+        </button>
+        
+        <button mat-stroked-button 
+                (click)="loadDebtTitles()"
+                [disabled]="isLoading"
+                matTooltip="Atualizar lista">
+          <mat-icon>refresh</mat-icon>
+          Atualizar
+        </button>
+        
+        <button mat-stroked-button 
+                (click)="exportToCSV()"
+                [disabled]="filteredDebtTitles.length === 0"
+                matTooltip="Exportar para CSV">
+          <mat-icon>download</mat-icon>
+          Exportar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-container">
+        <div class="filter-row">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Buscar</mat-label>
+            <input matInput 
+                   [value]="searchTerm"
+                   (input)="onSearchChange($any($event.target)?.value || '')"
+                   placeholder="Número, nome ou documento do devedor"
+                   maxlength="100">
+            <mat-icon matSuffix>search</mat-icon>
+            <mat-hint>Busque por número do título, nome ou documento</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Status</mat-label>
+            <mat-select [(value)]="overdueFilter" 
+                        (selectionChange)="onOverdueFilterChange()">
+              <mat-option *ngFor="let option of overdueOptions" 
+                          [value]="option.value">
+                {{ option.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          
+          <!-- Filtro de Data Inicial -->
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Data Inicial</mat-label>
+            <input matInput 
+                   type="date"
+                   [(ngModel)]="dateRangeFilter.start"
+                   (ngModelChange)="onDateRangeChange()"
+                   matTooltip="Filtrar por data de vencimento inicial">
+          </mat-form-field>
+          
+          <!-- Filtro de Data Final -->
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Data Final</mat-label>
+            <input matInput 
+                   type="date"
+                   [(ngModel)]="dateRangeFilter.end"
+                   (ngModelChange)="onDateRangeChange()"
+                   matTooltip="Filtrar por data de vencimento final">
+          </mat-form-field>
+          
+          <!-- Filtro de Valor Mínimo -->
+          <mat-form-field appearance="outline" class="filter-field value-field">
+            <mat-label>Valor Mín.</mat-label>
+            <input matInput 
+                   type="number"
+                   [(ngModel)]="valueRangeFilter.min"
+                   (ngModelChange)="onValueRangeChange()"
+                   placeholder="0,00"
+                   min="0"
+                   step="0.01"
+                   matTooltip="Filtrar por valor mínimo">
+            <span matPrefix>R$ </span>
+          </mat-form-field>
+          
+          <!-- Filtro de Valor Máximo -->
+          <mat-form-field appearance="outline" class="filter-field value-field">
+            <mat-label>Valor Máx.</mat-label>
+            <input matInput 
+                   type="number"
+                   [(ngModel)]="valueRangeFilter.max"
+                   (ngModelChange)="onValueRangeChange()"
+                   placeholder="0,00"
+                   min="0"
+                   step="0.01"
+                   matTooltip="Filtrar por valor máximo">
+            <span matPrefix>R$ </span>
+          </mat-form-field>
+
+          <div class="filter-actions">
+            <button mat-stroked-button 
+                    (click)="clearFilters()"
+                    matTooltip="Limpar todos os filtros"
+                    [disabled]="!hasActiveFilters()">
+              <mat-icon>clear</mat-icon>
+              Limpar
+            </button>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tabela Desktop -->
+  <mat-card class="table-card desktop-table" [class.hidden-mobile]="true">
+    <mat-card-content>
+      <!-- Loading Spinner -->
+      <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Carregando títulos de dívida...</p>
+      </div>
+
+      <!-- Mensagem de Erro -->
+      <div *ngIf="hasError && !isLoading" class="error-container">
+        <mat-icon color="warn">error</mat-icon>
+        <p>{{ errorMessage }}</p>
+        <button mat-raised-button color="primary" (click)="refresh()">
+          <mat-icon>refresh</mat-icon>
+          Tentar Novamente
+        </button>
+      </div>
+
+      <!-- Tabela de Dados -->
+      <div *ngIf="!isLoading && !hasError" class="table-container">
+        <!-- Informações da Lista -->
+        <div class="table-info">
+          <span class="results-count">
+            Mostrando {{ getPaginatedData().length }} de {{ totalItems }} títulos
+          </span>
+        </div>
+
+        <!-- Tabela -->
+        <table mat-table 
+               [dataSource]="getPaginatedData()" 
+               matSort
+               (matSortChange)="onSortChange($event)"
+               class="debt-titles-table">
+
+          <!-- Coluna Número do Título -->
+          <ng-container matColumnDef="titleNumber">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="titleNumber">
+              Número do Título
+            </th>
+            <td mat-cell *matCellDef="let element">
+              <span class="title-number">{{ element.titleNumber }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Coluna Nome do Devedor -->
+          <ng-container matColumnDef="debtorName">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="debtorName">
+              Devedor
+            </th>
+            <td mat-cell *matCellDef="let element">
+              <div class="debtor-info">
+                <span class="debtor-name">{{ element.debtorName }}</span>
+                <span class="debtor-document">{{ element.debtorDocument }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Coluna Documento -->
+          <ng-container matColumnDef="debtorDocument">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="debtorDocument">
+              Documento
+            </th>
+            <td mat-cell *matCellDef="let element">
+              <span class="document">{{ element.debtorDocument }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Coluna Valor Original -->
+          <ng-container matColumnDef="originalValue">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="originalValue">
+              Valor Original
+            </th>
+            <td mat-cell *matCellDef="let element">
+              <div class="value-info">
+                <span class="original-value">{{ formatCurrency(element.originalValue) }}</span>
+                <div class="updated-value" *ngIf="element.updatedValue !== element.originalValue">
+                  <mat-icon class="value-icon">trending_up</mat-icon>
+                  <span>{{ formatCurrency(element.updatedValue) }}</span>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Coluna Data de Vencimento -->
+          <ng-container matColumnDef="dueDate">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="dueDate">
+              Vencimento
+            </th>
+            <td mat-cell *matCellDef="let element">
+              <div class="date-info">
+                <span class="due-date">{{ formatDate(element.dueDate) }}</span>
+                <div class="overdue-info" *ngIf="element.isOverdue">
+                  <mat-icon class="overdue-icon">schedule</mat-icon>
+                  <span>{{ formatOverdueDays(element.daysOverdue) }}</span>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Coluna Status -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="status">
+              Status
+            </th>
+            <td mat-cell *matCellDef="let element">
+              <mat-chip [class]="getStatusInfo(element).class">
+                <mat-icon *ngIf="element.isOverdue">warning</mat-icon>
+                <mat-icon *ngIf="!element.isOverdue">check_circle</mat-icon>
+                {{ getStatusInfo(element).text }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Coluna Ações -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="actions-header">
+              Ações
+            </th>
+            <td mat-cell *matCellDef="let element" class="actions-cell">
+              <div class="action-buttons">
+                <button mat-icon-button 
+                        [routerLink]="['/debt-titles', element.id]"
+                        matTooltip="Visualizar detalhes"
+                        color="primary">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button 
+                        [routerLink]="['/debt-titles', element.id, 'edit']"
+                        matTooltip="Editar título"
+                        color="accent">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button 
+                        (click)="deleteDebtTitle(element.id)"
+                        matTooltip="Excluir título"
+                        color="warn">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <!-- Mensagem quando não há dados -->
+        <div *ngIf="filteredDebtTitles.length === 0" class="no-data-container">
+          <mat-icon>inbox</mat-icon>
+          <h3>Nenhum título encontrado</h3>
+          <p *ngIf="hasActiveFilters()">
+            Tente ajustar os filtros ou 
+            <button mat-button color="primary" (click)="clearFilters()">
+              limpar filtros
+            </button>
+          </p>
+          <p *ngIf="!hasActiveFilters()">
+            Ainda não há títulos de dívida cadastrados.
+            <br>
+            <button mat-raised-button 
+                    color="primary" 
+                    routerLink="/debt-titles/new"
+                    class="create-first-button">
+              <mat-icon>add</mat-icon>
+              Criar Primeiro Título
+            </button>
+          </p>
+        </div>
+
+        <!-- Paginação -->
+        <mat-paginator *ngIf="filteredDebtTitles.length > 0"
+                       [length]="totalItems"
+                       [pageSize]="pageSize"
+                       [pageIndex]="pageIndex"
+                       [pageSizeOptions]="pageSizeOptions"
+                       [showFirstLastButtons]="true"
+                       (page)="onPageChange($event)"
+                       aria-label="Selecionar página">
+        </mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Cards Mobile -->
+  <div class="mobile-cards hidden-desktop" *ngIf="!isLoading && !hasError">
+    <!-- Informações da Lista Mobile -->
+    <div class="mobile-info" *ngIf="filteredDebtTitles.length > 0">
+      <span class="total-items">{{ filteredDebtTitles.length }} título(s) encontrado(s)</span>
+    </div>
+
+    <!-- Cards dos Títulos -->
+    <mat-card *ngFor="let debtTitle of getPaginatedData()" class="mobile-card">
+      <mat-card-header>
+        <div class="mobile-card-header">
+          <div class="title-info">
+            <h3 class="title-number">{{ debtTitle.titleNumber }}</h3>
+            <mat-chip [class]="getStatusInfo(debtTitle).class" class="status-chip">
+              <mat-icon>{{ debtTitle.isOverdue ? 'warning' : 'check_circle' }}</mat-icon>
+              {{ getStatusInfo(debtTitle).text }}
+            </mat-chip>
+          </div>
+        </div>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="mobile-card-content">
+          <!-- Informações do Devedor -->
+          <div class="debtor-section">
+            <div class="section-header">
+              <mat-icon>person</mat-icon>
+              <span class="section-title">Devedor</span>
+            </div>
+            <div class="debtor-details">
+              <p class="debtor-name">{{ debtTitle.debtorName }}</p>
+              <p class="debtor-document">{{ debtTitle.debtorDocument }}</p>
+            </div>
+          </div>
+
+          <!-- Informações Financeiras -->
+          <div class="financial-section">
+            <div class="section-header">
+              <mat-icon>attach_money</mat-icon>
+              <span class="section-title">Valores</span>
+            </div>
+            <div class="financial-details">
+              <div class="value-row">
+                <span class="label">Original:</span>
+                <span class="value">{{ formatCurrency(debtTitle.originalValue) }}</span>
+              </div>
+              <div class="value-row" *ngIf="debtTitle.updatedValue !== debtTitle.originalValue">
+                <span class="label">Atual:</span>
+                <span class="value updated">{{ formatCurrency(debtTitle.updatedValue) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Informações de Data -->
+          <div class="date-section">
+            <div class="section-header">
+              <mat-icon>schedule</mat-icon>
+              <span class="section-title">Vencimento</span>
+            </div>
+            <div class="date-details">
+              <p class="due-date">{{ formatDate(debtTitle.dueDate) }}</p>
+              <p class="overdue-info" *ngIf="debtTitle.isOverdue">
+                {{ formatOverdueDays(debtTitle.daysOverdue) }} de atraso
+              </p>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+      
+      <mat-card-actions class="mobile-actions">
+        <button mat-button color="primary" [routerLink]="['/debt-titles', debtTitle.id]">
+          <mat-icon>visibility</mat-icon>
+          Ver
+        </button>
+        <button mat-button color="accent" [routerLink]="['/debt-titles', debtTitle.id, 'edit']">
+          <mat-icon>edit</mat-icon>
+          Editar
+        </button>
+        <button mat-button color="warn" (click)="deleteDebtTitle(debtTitle.id)">
+          <mat-icon>delete</mat-icon>
+          Excluir
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Mensagem de Sem Dados Mobile -->
+    <div *ngIf="filteredDebtTitles.length === 0" class="mobile-no-data">
+      <mat-icon>inbox</mat-icon>
+      <h3>Nenhum título encontrado</h3>
+      <p *ngIf="hasActiveFilters()">
+        Tente ajustar os filtros ou 
+        <button mat-button color="primary" (click)="clearFilters()">
+          limpar filtros
+        </button>
+      </p>
+      <p *ngIf="!hasActiveFilters()">
+        Ainda não há títulos de dívida cadastrados.
+        <br>
+        <button mat-raised-button color="primary" routerLink="/debt-titles/new">
+          <mat-icon>add</mat-icon>
+          Criar Primeiro Título
+        </button>
+      </p>
+    </div>
+
+    <!-- Paginação Mobile -->
+    <mat-paginator *ngIf="filteredDebtTitles.length > 0"
+                   [length]="totalItems"
+                   [pageSize]="pageSize"
+                   [pageIndex]="pageIndex"
+                   [pageSizeOptions]="pageSizeOptions"
+                   [showFirstLastButtons]="true"
+                   (page)="onPageChange($event)"
+                   class="mobile-paginator">
+    </mat-paginator>
+  </div>
+</div>

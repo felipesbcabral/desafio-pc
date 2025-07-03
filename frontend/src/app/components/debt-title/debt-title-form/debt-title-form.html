@@ -60,12 +60,16 @@
               <input matInput 
                      formControlName="debtorDocument" 
                      placeholder="000.000.000-00 ou 00.000.000/0000-00"
-                     maxlength="18">
+                     maxlength="18"
+                     (input)="onDocumentInput($event)">
+              <mat-icon matSuffix [class.valid-icon]="!isFieldInvalid('debtorDocument') && debtTitleForm.get('debtorDocument')?.value">
+                {{ !isFieldInvalid('debtorDocument') && debtTitleForm.get('debtorDocument')?.value ? 'check_circle' : 'assignment_ind' }}
+              </mat-icon>
+              <mat-hint>Digite apenas números</mat-hint>
               <mat-error *ngIf="isFieldInvalid('debtorDocument')">
                 {{ getErrorMessage('debtorDocument') }}
               </mat-error>
             </mat-form-field>
-
           </div>
         </div>
 
@@ -80,13 +84,15 @@
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>Valor Original</mat-label>
               <input matInput 
-                     type="number"
                      formControlName="originalValue" 
                      placeholder="0,00"
-                     step="0.01"
-                     min="0.01">
+                     (input)="onValueInput($event, 'originalValue')"
+                     (blur)="onValueBlur('originalValue')">
               <span matTextPrefix>R$ </span>
-              <mat-hint>Valor total do título</mat-hint>
+              <mat-icon matSuffix [class.valid-icon]="!isFieldInvalid('originalValue') && debtTitleForm.get('originalValue')?.value">
+                {{ !isFieldInvalid('originalValue') && debtTitleForm.get('originalValue')?.value ? 'check_circle' : 'attach_money' }}
+              </mat-icon>
+              <mat-hint>Digite o valor em reais</mat-hint>
               <mat-error *ngIf="isFieldInvalid('originalValue')">
                 {{ getErrorMessage('originalValue') }}
               </mat-error>
@@ -100,7 +106,7 @@
                      placeholder="dd/mm/aaaa">
               <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
               <mat-datepicker #picker></mat-datepicker>
-              <mat-hint>Data da primeira parcela</mat-hint>
+              <mat-hint>Selecione a data de vencimento</mat-hint>
               <mat-error *ngIf="isFieldInvalid('dueDate')">
                 {{ getErrorMessage('dueDate') }}
               </mat-error>

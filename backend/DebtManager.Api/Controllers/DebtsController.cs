@@ -170,11 +170,14 @@ public class DebtsController : ControllerBase
         var maxDaysOverdue = installments.Any() ? installments.Max(i => i.DaysOverdue) : 
             (DateTime.Now.Date > debtTitle.DueDate.Date ? (DateTime.Now.Date - debtTitle.DueDate.Date).Days : 0);
 
+        // Valor original como soma de todas as parcelas (se houver parcelas)
+        var originalValueFromInstallments = installments.Any() ? installments.Sum(i => i.Value) : debtTitle.OriginalValue;
+
         return new DebtTitleResponse
         {
             Id = debtTitle.Id,
             TitleNumber = debtTitle.TitleNumber,
-            OriginalValue = debtTitle.OriginalValue,
+            OriginalValue = originalValueFromInstallments,
             UpdatedValue = debtTitle.CalculateUpdatedValue(),
             DueDate = debtTitle.DueDate,
             InterestRatePerDay = debtTitle.InterestRatePerDay,

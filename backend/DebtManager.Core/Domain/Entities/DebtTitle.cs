@@ -74,7 +74,9 @@ public class DebtTitle
             foreach (var installment in Installments)
             {
                 totalOriginalValue += installment.Value;
-                totalInterest += installment.CalculateInterest(InterestRatePerDay / 100);
+                // Usando a taxa de juros mensal (InterestRatePerDay * 30) para o cálculo correto
+                var monthlyInterestRate = InterestRatePerDay * 30;
+                totalInterest += installment.CalculateInterest(monthlyInterestRate);
                 
                 // Aplica multa apenas se a parcela estiver em atraso
                 if (installment.IsOverdue())

@@ -50,6 +50,10 @@ public class AppDbContext : DbContext
                 .HasColumnType("decimal(5,4)")
                 .IsRequired();
             
+            entity.Property(e => e.PenaltyRate)
+                .HasColumnType("decimal(5,4)")
+                .IsRequired();
+            
             entity.Property(e => e.CreatedAt)
                 .HasColumnType("datetime2")
                 .IsRequired();

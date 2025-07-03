@@ -45,6 +45,7 @@ public class DebtsController : ControllerBase
                 UpdatedValue = debt.CalculateUpdatedValue(),
                 DueDate = debt.DueDate,
                 InterestRatePerDay = debt.InterestRatePerDay,
+                PenaltyRate = debt.PenaltyRate,
                 DebtorName = debt.Debtor.Name,
                 DebtorDocument = debt.Debtor.Document.Value,
                 DebtorDocumentType = debt.Debtor.Document.Type.ToString(),
@@ -91,6 +92,7 @@ public class DebtsController : ControllerBase
                 UpdatedValue = debtTitle.CalculateUpdatedValue(),
                 DueDate = debtTitle.DueDate,
                 InterestRatePerDay = debtTitle.InterestRatePerDay,
+                PenaltyRate = debtTitle.PenaltyRate,
                 DebtorName = debtTitle.Debtor.Name,
                 DebtorDocument = debtTitle.Debtor.Document.Value,
                 DebtorDocumentType = debtTitle.Debtor.Document.Type.ToString(),
@@ -130,6 +132,7 @@ public class DebtsController : ControllerBase
                 request.OriginalValue,
                 request.DueDate,
                 request.InterestRatePerDay,
+                request.PenaltyRate,
                 request.DebtorName,
                 request.DebtorDocument);
 
@@ -141,6 +144,7 @@ public class DebtsController : ControllerBase
                 UpdatedValue = createdDebt.CalculateUpdatedValue(),
                 DueDate = createdDebt.DueDate,
                 InterestRatePerDay = createdDebt.InterestRatePerDay,
+                PenaltyRate = createdDebt.PenaltyRate,
                 DebtorName = createdDebt.Debtor.Name,
                 DebtorDocument = createdDebt.Debtor.Document.Value,
                 DebtorDocumentType = createdDebt.Debtor.Document.Type.ToString(),

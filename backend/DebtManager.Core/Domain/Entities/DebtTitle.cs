@@ -10,6 +10,7 @@ public class DebtTitle
     public decimal OriginalValue { get; private set; }
     public DateTime DueDate { get; private set; }
     public decimal InterestRatePerDay { get; private set; }
+    public decimal PenaltyRate { get; private set; }
     public Debtor Debtor { get; private set; } = null!;
     public DateTime CreatedAt { get; private set; }
     public List<Installment> Installments { get; private set; } = [];
@@ -24,6 +25,7 @@ public class DebtTitle
         decimal originalValue,
         DateTime dueDate,
         decimal interestRatePerDay,
+        decimal penaltyRate,
         Debtor debtor)
     {
         Id = Guid.NewGuid();
@@ -31,6 +33,7 @@ public class DebtTitle
         OriginalValue = originalValue;
         DueDate = dueDate;
         InterestRatePerDay = interestRatePerDay;
+        PenaltyRate = penaltyRate;
         Debtor = debtor ?? throw new ArgumentNullException(nameof(debtor));
         CreatedAt = DateTime.UtcNow;
 
@@ -43,6 +46,7 @@ public class DebtTitle
         decimal originalValue,
         DateTime dueDate,
         decimal interestRatePerDay,
+        decimal penaltyRate,
         string debtorName,
         string debtorDocument)
     {
@@ -51,6 +55,7 @@ public class DebtTitle
         OriginalValue = originalValue;
         DueDate = dueDate;
         InterestRatePerDay = interestRatePerDay;
+        PenaltyRate = penaltyRate;
         Debtor = new Debtor(debtorName, debtorDocument);
         CreatedAt = DateTime.UtcNow;
 
@@ -64,7 +69,8 @@ public class DebtTitle
             return OriginalValue;
 
         var interest = OriginalValue * (InterestRatePerDay / 100) * daysPastDue;
-        return OriginalValue + interest;
+        var penalty = OriginalValue * (PenaltyRate / 100);
+        return OriginalValue + interest + penalty;
     }
 
     public void AddInstallment(int installmentNumber, decimal value, DateTime dueDate)
@@ -83,6 +89,9 @@ public class DebtTitle
 
         if (InterestRatePerDay < 0)
             throw new ArgumentException("A taxa de juros não pode ser negativa.");
+
+        if (PenaltyRate < 0)
+            throw new ArgumentException("A taxa de multa não pode ser negativa.");
 
         if (Debtor == null)
             throw new ArgumentException("O devedor é obrigatório.");

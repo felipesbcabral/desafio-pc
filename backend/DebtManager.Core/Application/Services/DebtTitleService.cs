@@ -16,11 +16,12 @@ public class DebtTitleService(IDebtTitleRepository repository)
         decimal originalValue,
         DateTime dueDate,
         decimal interestRatePerDay,
+        decimal penaltyRate,
         string debtorName,
         string debtorDocument)
     {
         var debtor = new Debtor(debtorName, debtorDocument);
-        var debtTitle = new DebtTitle(titleNumber, originalValue, dueDate, interestRatePerDay, debtor);
+        var debtTitle = new DebtTitle(titleNumber, originalValue, dueDate, interestRatePerDay, penaltyRate, debtor);
         
         return await _repository.AddAsync(debtTitle);
     }
@@ -34,7 +35,7 @@ public class DebtTitleService(IDebtTitleRepository repository)
         int numberOfInstallments)
     {
         var debtTitle = await CreateDebtTitleAsync(
-            "TEMP-" + Guid.NewGuid().ToString()[..8], originalValue, dueDate, interestRatePerDay, debtorName, debtorDocument);
+            "TEMP-" + Guid.NewGuid().ToString()[..8], originalValue, dueDate, interestRatePerDay, 2.0m, debtorName, debtorDocument);
 
         if (numberOfInstallments > 1)
         {

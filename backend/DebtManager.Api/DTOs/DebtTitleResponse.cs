@@ -16,7 +16,7 @@ public class DebtTitleResponse
     public string TitleNumber { get; set; } = string.Empty;
 
     /// <summary>
-    /// Valor original do título
+    /// Valor original do título (soma de todas as parcelas)
     /// </summary>
     public decimal OriginalValue { get; set; }
 

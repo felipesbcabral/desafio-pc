@@ -8,6 +8,14 @@ namespace DebtManager.Api.DTOs;
 public class CreateDebtTitleRequest
 {
     /// <summary>
+    /// Número do título
+    /// </summary>
+    /// <example>101010</example>
+    [Required(ErrorMessage = "Número do título é obrigatório")]
+    [StringLength(50, MinimumLength = 1, ErrorMessage = "Número do título deve ter entre 1 e 50 caracteres")]
+    public string TitleNumber { get; set; } = string.Empty;
+
+    /// <summary>
     /// Valor original do título
     /// </summary>
     /// <example>1000.00</example>

@@ -11,6 +11,11 @@ public class DebtTitleResponse
     public Guid Id { get; set; }
 
     /// <summary>
+    /// Número do título
+    /// </summary>
+    public string TitleNumber { get; set; } = string.Empty;
+
+    /// <summary>
     /// Valor original do título
     /// </summary>
     public decimal OriginalValue { get; set; }

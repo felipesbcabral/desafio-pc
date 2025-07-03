@@ -31,6 +31,13 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             
+            entity.Property(e => e.TitleNumber)
+                .HasMaxLength(50)
+                .IsRequired();
+            
+            entity.HasIndex(e => e.TitleNumber)
+                .IsUnique();
+            
             entity.Property(e => e.OriginalValue)
                 .HasColumnType("decimal(18,2)")
                 .IsRequired();

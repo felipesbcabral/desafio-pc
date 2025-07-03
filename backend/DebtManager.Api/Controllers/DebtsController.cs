@@ -40,6 +40,7 @@ public class DebtsController : ControllerBase
             var response = debtTitles.Select(debt => new DebtTitleResponse
             {
                 Id = debt.Id,
+                TitleNumber = debt.TitleNumber,
                 OriginalValue = debt.OriginalValue,
                 UpdatedValue = debt.CalculateUpdatedValue(),
                 DueDate = debt.DueDate,
@@ -85,6 +86,7 @@ public class DebtsController : ControllerBase
             var response = new DebtTitleResponse
             {
                 Id = debtTitle.Id,
+                TitleNumber = debtTitle.TitleNumber,
                 OriginalValue = debtTitle.OriginalValue,
                 UpdatedValue = debtTitle.CalculateUpdatedValue(),
                 DueDate = debtTitle.DueDate,
@@ -124,6 +126,7 @@ public class DebtsController : ControllerBase
                 return BadRequest(ModelState);
 
             var createdDebt = await _debtTitleService.CreateDebtTitleAsync(
+                request.TitleNumber,
                 request.OriginalValue,
                 request.DueDate,
                 request.InterestRatePerDay,
@@ -133,6 +136,7 @@ public class DebtsController : ControllerBase
             var response = new DebtTitleResponse
             {
                 Id = createdDebt.Id,
+                TitleNumber = createdDebt.TitleNumber,
                 OriginalValue = createdDebt.OriginalValue,
                 UpdatedValue = createdDebt.CalculateUpdatedValue(),
                 DueDate = createdDebt.DueDate,

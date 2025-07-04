@@ -1,4 +1,4 @@
-<div class="debt-title-list-container">
+<div class="debt-title-list-container animate-fadeIn">
   <!-- Cabeçalho -->
   <div class="list-header">
     <div class="header-content">
@@ -7,13 +7,14 @@
         Títulos de Dívida
       </h2>
       <div class="header-actions">
-        <button mat-raised-button 
-                color="primary" 
+        <app-button 
+                variant="primary" 
+                size="md"
                 routerLink="/debt-titles/new"
                 matTooltip="Criar novo título de dívida">
           <mat-icon>add</mat-icon>
           Novo Título
-        </button>
+        </app-button>
         
         <button mat-stroked-button 
                 (click)="loadDebtTitles()"

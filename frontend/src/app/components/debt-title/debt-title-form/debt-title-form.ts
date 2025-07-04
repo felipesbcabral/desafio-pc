@@ -99,8 +99,8 @@ export class DebtTitleForm implements OnInit {
       
       // Convert formatted values to numbers
       const originalValue = this.parseToNumber(formData.originalValue);
-      const interestRatePerDay = parseFloat(formData.interestRatePerDay) || 0;
-      const penaltyRate = parseFloat(formData.penaltyRate) || 0;
+      const interestRatePerDay = this.parsePercentageToNumber(formData.interestRatePerDay) / 100;
+      const penaltyRate = this.parsePercentageToNumber(formData.penaltyRate) / 100; 
       
       // Criar as parcelas baseadas no número de parcelas
       const installments: InstallmentRequest[] = this.generateInstallments(

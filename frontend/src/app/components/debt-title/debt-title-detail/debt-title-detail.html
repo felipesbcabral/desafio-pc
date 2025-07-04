@@ -1,1 +1,122 @@
-<p>debt-title-detail works!</p>
+<div class="debt-title-detail-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <app-loading size="lg" [showText]="true" text="Carregando detalhes do título..."></app-loading>
+  </div>
+
+  <!-- Not Found State -->
+  <div *ngIf="!isLoading && !title" class="not-found-container">
+    <app-card>
+      <div class="not-found-content">
+        <mat-icon class="not-found-icon">error_outline</mat-icon>
+        <h2>Título não encontrado</h2>
+        <p>O título de dívida solicitado não foi encontrado ou pode ter sido removido.</p>
+        <button mat-raised-button color="primary" [routerLink]="['/debt-titles']">
+          <mat-icon>arrow_back</mat-icon>
+          Voltar à listagem
+        </button>
+      </div>
+    </app-card>
+  </div>
+
+  <!-- Title Details -->
+  <div *ngIf="!isLoading && title" class="title-details">
+    <!-- Header with Actions -->
+    <div class="title-header">
+      <div class="title-info">
+        <h1>Título {{ title.titleNumber }}</h1>
+        <div class="title-status">
+          <span class="status-badge" [ngClass]="getStatusClass(title)">
+            {{ formatStatus(title) }}
+          </span>
+          <span *ngIf="title.daysOverdue > 0" class="overdue-badge">
+            {{ title.daysOverdue }} dias em atraso
+          </span>
+        </div>
+      </div>
+      
+      <div class="title-actions">
+        <button mat-raised-button color="primary" [routerLink]="['/debt-titles', title.id, 'edit']">
+          <mat-icon>edit</mat-icon>
+          Editar
+        </button>
+        <button mat-raised-button color="warn" (click)="confirmDelete()">
+          <mat-icon>delete</mat-icon>
+          Excluir
+        </button>
+        <button mat-stroked-button [routerLink]="['/debt-titles']">
+          <mat-icon>arrow_back</mat-icon>
+          Voltar
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <mat-tab-group class="title-tabs">
+      <!-- Basic Information Tab -->
+      <mat-tab label="Informações Básicas">
+        <div class="tab-content">
+          <div class="info-grid">
+            <!-- Title Information -->
+            <app-card title="Dados do Título" class="info-card">
+              <div class="info-row">
+                <span class="info-label">Número do Título:</span>
+                <span class="info-value">{{ title.titleNumber }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Status:</span>
+                <span class="info-value">
+                  <span class="status-badge" [ngClass]="getStatusClass(title)">
+                    {{ formatStatus(title) }}
+                  </span>
+                </span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Valor Original:</span>
+                <span class="info-value">{{ formatCurrency(title.originalValue) }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Valor Atualizado:</span>
+                <span class="info-value">{{ formatCurrency(title.updatedValue) }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Data de Vencimento:</span>
+                <span class="info-value">{{ formatDate(title.dueDate) }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Taxa de Juros:</span>
+                <span class="info-value">{{ (title.interestRatePerDay * 100).toFixed(4) }}% ao dia</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Taxa de Multa:</span>
+                <span class="info-value">{{ (title.penaltyRate * 100).toFixed(2) }}%</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Criado em:</span>
+                <span class="info-value">{{ formatDate(title.createdAt) }}</span>
+              </div>
+            </app-card>
+
+            <!-- Debtor Information -->
+            <app-card title="Dados do Devedor" class="info-card">
+              <div class="info-row">
+                <span class="info-label">Nome:</span>
+                <span class="info-value">{{ title.debtorName }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Documento:</span>
+                <span class="info-value">{{ title.debtorDocument }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Tipo:</span>
+                <span class="info-value">{{ title.debtorDocumentType }}</span>
+              </div>
+            </app-card>
+          </div>
+        </div>
+      </mat-tab>
+
+
+    </mat-tab-group>
+  </div>
+</div>

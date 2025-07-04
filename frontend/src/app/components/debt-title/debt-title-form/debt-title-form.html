@@ -1,235 +1,256 @@
-<div class="form-container">
-  <mat-card class="form-card">
-    <mat-card-header>
-      <mat-card-title>
-        <mat-icon>{{ isEditMode ? 'edit' : 'add' }}</mat-icon>
-        {{ isEditMode ? 'Editar Título' : 'Novo Título' }}
-      </mat-card-title>
-      <mat-card-subtitle>
-        {{ isEditMode ? 'Atualize as informações do título de dívida' : 'Preencha as informações para criar um novo título de dívida' }}
-      </mat-card-subtitle>
-    </mat-card-header>
+<div class="modern-editor-container">
+  <div class="header-section">
+    <div class="title-area">
+      <mat-icon class="main-icon">{{ isEditMode ? 'edit_note' : 'note_add' }}</mat-icon>
+      <div class="title-content">
+        <h1>{{ isEditMode ? 'Editar Título' : 'Novo Título' }}</h1>
+        <p class="subtitle">{{ isEditMode ? 'Clique nos campos para editar as informações' : 'Preencha as informações do novo título' }}</p>
+      </div>
+    </div>
+    
+    <div class="action-buttons">
+      <button mat-stroked-button (click)="onCancel()" class="cancel-btn">
+        <mat-icon>close</mat-icon>
+        Cancelar
+      </button>
+      <button mat-raised-button color="primary" (click)="onSave()" [disabled]="!canSave()" class="save-btn">
+        <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+        {{ isEditMode ? 'Salvar Alterações' : 'Criar Título' }}
+      </button>
+    </div>
+  </div>
 
-    <mat-card-content>
-      <form [formGroup]="debtTitleForm" (ngSubmit)="onSubmit()" class="debt-title-form">
-        <!-- Informações do Título -->
-        <div class="form-section">
-          <h3 class="section-title">
-            <mat-icon>description</mat-icon>
-            Informações do Título
-          </h3>
-          
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Número do Título</mat-label>
-              <input matInput 
-                     formControlName="titleNumber" 
-                     placeholder="Ex: TIT-001234, CRED-5678"
-                     maxlength="50">
-              <mat-hint>Identificação única do título</mat-hint>
-              <mat-error *ngIf="isFieldInvalid('titleNumber')">
-                {{ getErrorMessage('titleNumber') }}
-              </mat-error>
-            </mat-form-field>
-          </div>
+  <div class="content-grid">
+    <!-- Card de Informações do Título -->
+    <div class="info-card">
+      <div class="card-header">
+        <mat-icon>description</mat-icon>
+        <h3>Informações do Título</h3>
+      </div>
+      
+      <div class="editable-field" [class.editing]="editingField === 'titleNumber'">
+        <label>Número do Título</label>
+        <div class="field-content" (click)="startEditing('titleNumber')">
+          <span class="value" *ngIf="editingField !== 'titleNumber'">{{ titleData.titleNumber || 'Clique para adicionar' }}</span>
+          <mat-form-field *ngIf="editingField === 'titleNumber'" appearance="outline">
+            <input matInput [(ngModel)]="titleData.titleNumber" 
+                   (keyup.enter)="saveField('titleNumber')"
+                   (keyup.escape)="cancelEdit()"
+                   #titleNumberInput>
+          </mat-form-field>
+          <mat-icon class="edit-icon" *ngIf="editingField !== 'titleNumber'">edit</mat-icon>
         </div>
-
-        <!-- Informações do Devedor -->
-        <div class="form-section">
-          <h3 class="section-title">
-            <mat-icon>person</mat-icon>
-            Informações do Devedor
-          </h3>
-          
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Nome do Devedor</mat-label>
-              <input matInput 
-                     formControlName="debtorName" 
-                     placeholder="Nome completo ou razão social"
-                     maxlength="100">
-              <mat-error *ngIf="isFieldInvalid('debtorName')">
-                {{ getErrorMessage('debtorName') }}
-              </mat-error>
-            </mat-form-field>
-          </div>
-
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>CPF/CNPJ</mat-label>
-              <input matInput 
-                     formControlName="debtorDocument" 
-                     placeholder="000.000.000-00 ou 00.000.000/0000-00"
-                     maxlength="18"
-                     (input)="onDocumentInput($event)">
-              <mat-icon matSuffix [class.valid-icon]="!isFieldInvalid('debtorDocument') && debtTitleForm.get('debtorDocument')?.value">
-                {{ !isFieldInvalid('debtorDocument') && debtTitleForm.get('debtorDocument')?.value ? 'check_circle' : 'assignment_ind' }}
-              </mat-icon>
-              <mat-hint>Digite apenas números</mat-hint>
-              <mat-error *ngIf="isFieldInvalid('debtorDocument')">
-                {{ getErrorMessage('debtorDocument') }}
-              </mat-error>
-            </mat-form-field>
-          </div>
-        </div>
-
-        <!-- Informações Financeiras -->
-        <div class="form-section">
-          <h3 class="section-title">
-            <mat-icon>attach_money</mat-icon>
-            Informações Financeiras
-          </h3>
-          
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Valor Original</mat-label>
-              <input matInput 
-                     formControlName="originalValue" 
-                     placeholder="0,00"
-                     (input)="onValueInput($event, 'originalValue')"
-                     (blur)="onValueBlur('originalValue')">
-              <span matTextPrefix>R$ </span>
-              <mat-icon matSuffix [class.valid-icon]="!isFieldInvalid('originalValue') && debtTitleForm.get('originalValue')?.value">
-                {{ !isFieldInvalid('originalValue') && debtTitleForm.get('originalValue')?.value ? 'check_circle' : 'attach_money' }}
-              </mat-icon>
-              <mat-hint>Digite o valor em reais</mat-hint>
-              <mat-error *ngIf="isFieldInvalid('originalValue')">
-                {{ getErrorMessage('originalValue') }}
-              </mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Data de Vencimento</mat-label>
-              <input matInput 
-                     [matDatepicker]="picker" 
-                     formControlName="dueDate"
-                     placeholder="dd/mm/aaaa"
-                     (dateChange)="onDateChange()">
-              <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-              <mat-datepicker #picker></mat-datepicker>
-              <mat-icon matSuffix [class.valid-icon]="!isFieldInvalid('dueDate') && debtTitleForm.get('dueDate')?.value">
-                {{ !isFieldInvalid('dueDate') && debtTitleForm.get('dueDate')?.value ? 'check_circle' : 'event' }}
-              </mat-icon>
-              <mat-hint>Selecione a data de vencimento</mat-hint>
-              <mat-error *ngIf="isFieldInvalid('dueDate')">
-                {{ getErrorMessage('dueDate') }}
-              </mat-error>
-            </mat-form-field>
-          </div>
-
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="third-width">
-              <mat-label>Taxa de Juros (% ao dia)</mat-label>
-              <input matInput 
-                     formControlName="interestRatePerDay" 
-                     placeholder="0,00"
-                     (input)="onPercentageInput($event, 'interestRatePerDay')"
-                     (blur)="onPercentageBlur('interestRatePerDay')">
-              <span matTextSuffix>%</span>
-              <mat-icon matSuffix [class.valid-icon]="!isFieldInvalid('interestRatePerDay') && debtTitleForm.get('interestRatePerDay')?.value">
-                {{ !isFieldInvalid('interestRatePerDay') && debtTitleForm.get('interestRatePerDay')?.value ? 'check_circle' : 'percent' }}
-              </mat-icon>
-              <mat-hint>Taxa diária de juros</mat-hint>
-              <mat-error *ngIf="isFieldInvalid('interestRatePerDay')">
-                {{ getErrorMessage('interestRatePerDay') }}
-              </mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="third-width">
-              <mat-label>Taxa de Multa (%)</mat-label>
-              <input matInput 
-                     formControlName="penaltyRate" 
-                     placeholder="0,00"
-                     (input)="onPercentageInput($event, 'penaltyRate')"
-                     (blur)="onPercentageBlur('penaltyRate')">
-              <span matTextSuffix>%</span>
-              <mat-icon matSuffix [class.valid-icon]="!isFieldInvalid('penaltyRate') && debtTitleForm.get('penaltyRate')?.value">
-                {{ !isFieldInvalid('penaltyRate') && debtTitleForm.get('penaltyRate')?.value ? 'check_circle' : 'gavel' }}
-              </mat-icon>
-              <mat-hint>Taxa de multa por atraso</mat-hint>
-              <mat-error *ngIf="isFieldInvalid('penaltyRate')">
-                {{ getErrorMessage('penaltyRate') }}
-              </mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="third-width">
-              <mat-label>Número de Parcelas</mat-label>
-              <input matInput 
-                     type="number" 
-                     formControlName="installmentCount" 
-                     placeholder="1"
-                     min="1"
-                     max="12"
-                     (change)="onInstallmentCountChange()">
-              <mat-icon matSuffix [class.valid-icon]="!isFieldInvalid('installmentCount') && debtTitleForm.get('installmentCount')?.value">
-                {{ !isFieldInvalid('installmentCount') && debtTitleForm.get('installmentCount')?.value ? 'check_circle' : 'format_list_numbered' }}
-              </mat-icon>
-              <mat-hint>Máximo 12 parcelas</mat-hint>
-              <mat-error *ngIf="isFieldInvalid('installmentCount')">
-                {{ getErrorMessage('installmentCount') }}
-              </mat-error>
-            </mat-form-field>
-          </div>
-        </div>
-
-        <!-- Seção de Parcelas -->
-        <div class="form-section" *ngIf="previewInstallments.length > 0">
-          <div class="section-header">
-            <mat-icon>receipt_long</mat-icon>
-            <h3>Parcelas Geradas ({{ previewInstallments.length }})</h3>
-          </div>
-          
-          <div class="installments-preview">
-            <div class="installments-summary">
-              <div class="summary-item">
-                <span class="label">Valor Total:</span>
-                <span class="value">{{ getTotalValue() | currency:'BRL':'symbol':'1.2-2' }}</span>
-              </div>
-              <div class="summary-item">
-                <span class="label">Valor por Parcela:</span>
-                <span class="value">{{ getInstallmentValue() | currency:'BRL':'symbol':'1.2-2' }}</span>
-              </div>
-            </div>
-            
-            <div class="installments-table">
-              <div class="table-header">
-                <span>Parcela</span>
-                <span>Vencimento</span>
-                <span>Valor</span>
-                <span>Status</span>
-              </div>
-              
-              <div class="table-row" *ngFor="let installment of previewInstallments; let i = index">
-                <span class="installment-number">{{ i + 1 }}/{{ previewInstallments.length }}</span>
-                <span class="due-date">{{ installment.dueDate | date:'dd/MM/yyyy' }}</span>
-                <span class="amount">{{ installment.amount | currency:'BRL':'symbol':'1.2-2' }}</span>
-                <span class="status pending">Pendente</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Botões de Ação -->
-        <div class="form-actions">
-          <button type="button" 
-                  mat-stroked-button 
-                  color="warn" 
-                  (click)="onCancel()"
-                  class="action-button">
-            <mat-icon>cancel</mat-icon>
-            Cancelar
+        <div class="field-actions" *ngIf="editingField === 'titleNumber'">
+          <button mat-icon-button (click)="saveField('titleNumber')" color="primary">
+            <mat-icon>check</mat-icon>
           </button>
-          
-          <button type="submit" 
-                  mat-raised-button 
-                  color="primary" 
-                  [disabled]="debtTitleForm.invalid"
-                  class="action-button">
-            <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
-            {{ isEditMode ? 'Atualizar' : 'Criar' }} Título
+          <button mat-icon-button (click)="cancelEdit()">
+            <mat-icon>close</mat-icon>
           </button>
         </div>
-      </form>
-    </mat-card-content>
-  </mat-card>
+      </div>
+    </div>
+
+    <!-- Card de Informações do Devedor -->
+    <div class="info-card">
+      <div class="card-header">
+        <mat-icon>person</mat-icon>
+        <h3>Informações do Devedor</h3>
+      </div>
+      
+      <div class="editable-field" [class.editing]="editingField === 'debtorName'">
+        <label>Nome do Devedor</label>
+        <div class="field-content" (click)="startEditing('debtorName')">
+          <span class="value" *ngIf="editingField !== 'debtorName'">{{ titleData.debtorName || 'Clique para adicionar' }}</span>
+          <mat-form-field *ngIf="editingField === 'debtorName'" appearance="outline">
+            <input matInput [(ngModel)]="titleData.debtorName" 
+                   (keyup.enter)="saveField('debtorName')"
+                   (keyup.escape)="cancelEdit()"
+                   #debtorNameInput>
+          </mat-form-field>
+          <mat-icon class="edit-icon" *ngIf="editingField !== 'debtorName'">edit</mat-icon>
+        </div>
+        <div class="field-actions" *ngIf="editingField === 'debtorName'">
+          <button mat-icon-button (click)="saveField('debtorName')" color="primary">
+            <mat-icon>check</mat-icon>
+          </button>
+          <button mat-icon-button (click)="cancelEdit()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="editable-field" [class.editing]="editingField === 'debtorDocument'">
+        <label>CPF/CNPJ</label>
+        <div class="field-content" (click)="startEditing('debtorDocument')">
+          <span class="value" *ngIf="editingField !== 'debtorDocument'">{{ formatDocument(titleData.debtorDocument) || 'Clique para adicionar' }}</span>
+          <mat-form-field *ngIf="editingField === 'debtorDocument'" appearance="outline">
+            <input matInput [(ngModel)]="titleData.debtorDocument" 
+                   (input)="onDocumentInput($event)"
+                   (keyup.enter)="saveField('debtorDocument')"
+                   (keyup.escape)="cancelEdit()"
+                   #debtorDocumentInput>
+          </mat-form-field>
+          <mat-icon class="edit-icon" *ngIf="editingField !== 'debtorDocument'">edit</mat-icon>
+        </div>
+        <div class="field-actions" *ngIf="editingField === 'debtorDocument'">
+          <button mat-icon-button (click)="saveField('debtorDocument')" color="primary">
+            <mat-icon>check</mat-icon>
+          </button>
+          <button mat-icon-button (click)="cancelEdit()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card de Informações Financeiras -->
+    <div class="info-card">
+      <div class="card-header">
+        <mat-icon>attach_money</mat-icon>
+        <h3>Informações Financeiras</h3>
+      </div>
+      
+      <div class="editable-field" [class.editing]="editingField === 'originalValue'">
+        <label>Valor Original</label>
+        <div class="field-content" (click)="startEditing('originalValue')">
+          <span class="value" *ngIf="editingField !== 'originalValue'">{{ formatCurrency(titleData.originalValue) || 'Clique para adicionar' }}</span>
+          <mat-form-field *ngIf="editingField === 'originalValue'" appearance="outline">
+            <input matInput [(ngModel)]="titleData.originalValue" 
+                   (input)="onValueInput($event)"
+                   (keyup.enter)="saveField('originalValue')"
+                   (keyup.escape)="cancelEdit()"
+                   #originalValueInput>
+            <span matTextPrefix>R$ </span>
+          </mat-form-field>
+          <mat-icon class="edit-icon" *ngIf="editingField !== 'originalValue'">edit</mat-icon>
+        </div>
+        <div class="field-actions" *ngIf="editingField === 'originalValue'">
+          <button mat-icon-button (click)="saveField('originalValue')" color="primary">
+            <mat-icon>check</mat-icon>
+          </button>
+          <button mat-icon-button (click)="cancelEdit()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="editable-field" [class.editing]="editingField === 'dueDate'">
+        <label>Data de Vencimento</label>
+        <div class="field-content" (click)="startEditing('dueDate')">
+          <span class="value" *ngIf="editingField !== 'dueDate'">{{ formatDate(titleData.dueDate) || 'Clique para adicionar' }}</span>
+          <mat-form-field *ngIf="editingField === 'dueDate'" appearance="outline">
+            <input matInput [matDatepicker]="picker" [(ngModel)]="titleData.dueDate" 
+                   (dateChange)="saveField('dueDate')"
+                   #dueDateInput>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+          </mat-form-field>
+          <mat-icon class="edit-icon" *ngIf="editingField !== 'dueDate'">edit</mat-icon>
+        </div>
+        <div class="field-actions" *ngIf="editingField === 'dueDate'">
+          <button mat-icon-button (click)="cancelEdit()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="rates-row">
+        <div class="editable-field" [class.editing]="editingField === 'interestRatePerDay'">
+          <label>Taxa de Juros (% ao dia)</label>
+          <div class="field-content" (click)="startEditing('interestRatePerDay')">
+            <span class="value" *ngIf="editingField !== 'interestRatePerDay'">{{ formatPercentage(titleData.interestRatePerDay) || 'Clique para adicionar' }}</span>
+            <mat-form-field *ngIf="editingField === 'interestRatePerDay'" appearance="outline">
+              <input matInput [(ngModel)]="titleData.interestRatePerDay" 
+                     (input)="onPercentageInput($event)"
+                     (keyup.enter)="saveField('interestRatePerDay')"
+                     (keyup.escape)="cancelEdit()"
+                     #interestRateInput>
+              <span matTextSuffix>%</span>
+            </mat-form-field>
+            <mat-icon class="edit-icon" *ngIf="editingField !== 'interestRatePerDay'">edit</mat-icon>
+          </div>
+          <div class="field-actions" *ngIf="editingField === 'interestRatePerDay'">
+            <button mat-icon-button (click)="saveField('interestRatePerDay')" color="primary">
+              <mat-icon>check</mat-icon>
+            </button>
+            <button mat-icon-button (click)="cancelEdit()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="editable-field" [class.editing]="editingField === 'penaltyRate'">
+          <label>Taxa de Multa (%)</label>
+          <div class="field-content" (click)="startEditing('penaltyRate')">
+            <span class="value" *ngIf="editingField !== 'penaltyRate'">{{ formatPercentage(titleData.penaltyRate) || 'Clique para adicionar' }}</span>
+            <mat-form-field *ngIf="editingField === 'penaltyRate'" appearance="outline">
+              <input matInput [(ngModel)]="titleData.penaltyRate" 
+                     (input)="onPercentageInput($event)"
+                     (keyup.enter)="saveField('penaltyRate')"
+                     (keyup.escape)="cancelEdit()"
+                     #penaltyRateInput>
+              <span matTextSuffix>%</span>
+            </mat-form-field>
+            <mat-icon class="edit-icon" *ngIf="editingField !== 'penaltyRate'">edit</mat-icon>
+          </div>
+          <div class="field-actions" *ngIf="editingField === 'penaltyRate'">
+            <button mat-icon-button (click)="saveField('penaltyRate')" color="primary">
+              <mat-icon>check</mat-icon>
+            </button>
+            <button mat-icon-button (click)="cancelEdit()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card de Parcelas (apenas para criação) -->
+    <div class="info-card" *ngIf="!isEditMode">
+      <div class="card-header">
+        <mat-icon>payment</mat-icon>
+        <h3>Configuração de Parcelas</h3>
+      </div>
+      
+      <div class="editable-field" [class.editing]="editingField === 'installmentCount'">
+        <label>Número de Parcelas</label>
+        <div class="field-content" (click)="startEditing('installmentCount')">
+          <span class="value" *ngIf="editingField !== 'installmentCount'">{{ titleData.installmentCount || 1 }} parcela(s)</span>
+          <mat-form-field *ngIf="editingField === 'installmentCount'" appearance="outline">
+            <mat-select [(ngModel)]="titleData.installmentCount" 
+                        (selectionChange)="saveField('installmentCount')">
+              <mat-option *ngFor="let num of [1,2,3,4,5,6,7,8,9,10,11,12]" [value]="num">
+                {{ num }} parcela{{ num > 1 ? 's' : '' }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-icon class="edit-icon" *ngIf="editingField !== 'installmentCount'">edit</mat-icon>
+        </div>
+        <div class="field-actions" *ngIf="editingField === 'installmentCount'">
+          <button mat-icon-button (click)="cancelEdit()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Preview das parcelas -->
+      <div class="installments-preview" *ngIf="titleData.originalValue && titleData.dueDate && titleData.installmentCount > 1">
+        <h4>Preview das Parcelas</h4>
+        <div class="installment-list">
+          <div class="installment-item" *ngFor="let installment of getInstallmentPreview(); let i = index">
+            <span class="installment-number">{{ i + 1 }}ª</span>
+            <span class="installment-value">{{ formatCurrency(installment.value) }}</span>
+            <span class="installment-date">{{ formatDate(installment.dueDate) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <mat-spinner></mat-spinner>
+    <p>{{ isEditMode ? 'Salvando alterações...' : 'Criando título...' }}</p>
+  </div>
 </div>

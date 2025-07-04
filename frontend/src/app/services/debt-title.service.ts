@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { DebtTitle, CreateDebtTitleRequest } from '../models/debt-title.model';
+import { DebtTitle, CreateDebtTitleRequest, UpdateDebtTitleRequest } from '../models/debt-title.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -51,7 +51,7 @@ export class DebtTitleService {
   /**
    * Atualiza um título de dívida
    */
-  update(id: string, debtTitle: CreateDebtTitleRequest): Observable<DebtTitle> {
+  update(id: string, debtTitle: UpdateDebtTitleRequest): Observable<DebtTitle> {
     return this.http.put<DebtTitle>(`${this.apiUrl}/${id}`, debtTitle);
   }
 

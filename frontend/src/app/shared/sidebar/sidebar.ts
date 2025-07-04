@@ -2,7 +2,6 @@ import { Component, Input } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDividerModule } from '@angular/material/divider';
 import { RouterModule } from '@angular/router';
 
 @Component({
@@ -11,7 +10,6 @@ import { RouterModule } from '@angular/router';
     MatSidenavModule,
     MatListModule,
     MatIconModule,
-    MatDividerModule,
     RouterModule
   ],
   templateUrl: './sidebar.html',

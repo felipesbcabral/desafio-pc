@@ -86,7 +86,7 @@ public class AppDbContext : DbContext
             entity.HasMany(e => e.Installments)
                 .WithOne(i => i.DebtTitle)
                 .HasForeignKey(i => i.DebtTitleId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Configuração da entidade Installment

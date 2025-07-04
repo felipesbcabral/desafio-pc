@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angu
 import { CommonModule } from '@angular/common';
 import { IconComponent, IconName } from '../icon/icon.component';
 import { ButtonComponent } from '../button/button.component';
+import { slideInOut, shake, progressBar } from '../../animations/animations';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center';
@@ -10,6 +11,7 @@ export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-
   selector: 'app-toast',
   standalone: true,
   imports: [CommonModule, IconComponent, ButtonComponent],
+  animations: [slideInOut, shake, progressBar],
   template: `
     <div 
       *ngIf="isVisible" 
@@ -17,6 +19,11 @@ export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-
       role="alert"
       [attr.aria-live]="type === 'error' ? 'assertive' : 'polite'"
       [attr.aria-atomic]="true"
+      [@slideInOut]
+      [@shake]="animationState"
+      (mouseenter)="onMouseEnter()"
+      (mouseleave)="onMouseLeave()"
+      (click)="onClick()"
     >
       <div class="toast-content">
         <div class="toast-icon" *ngIf="showIcon">
@@ -44,6 +51,7 @@ export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-
         <div 
           class="toast-progress-bar" 
           [style.animation-duration.ms]="duration"
+          [@progressBar]="progressValue"
         ></div>
       </div>
     </div>
@@ -66,13 +74,14 @@ export class ToastComponent implements OnInit, OnDestroy {
   @Output() toastClick = new EventEmitter<void>();
   
   private timeoutId?: number;
+  animationState: string = '';
+  progressValue: number = 0;
 
   get toastClasses(): string {
     const classes = [
       'toast',
       `toast-${this.type}`,
-      `toast-${this.position}`,
-      'animate-slideInRight'
+      `toast-${this.position}`
     ];
     return classes.join(' ');
   }
@@ -90,6 +99,14 @@ export class ToastComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (!this.persistent && this.duration > 0) {
       this.startAutoClose();
+      this.startProgressBar();
+    }
+    
+    // Trigger shake animation for error toasts
+    if (this.type === 'error') {
+      setTimeout(() => {
+        this.animationState = 'error';
+      }, 100);
     }
   }
 
@@ -101,6 +118,12 @@ export class ToastComponent implements OnInit, OnDestroy {
     this.timeoutId = window.setTimeout(() => {
       this.close();
     }, this.duration);
+  }
+  
+  private startProgressBar(): void {
+    if (this.showProgress) {
+      this.progressValue = 100;
+    }
   }
 
   private clearAutoClose(): void {

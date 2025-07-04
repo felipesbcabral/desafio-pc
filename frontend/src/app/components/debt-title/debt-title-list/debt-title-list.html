@@ -45,10 +45,9 @@
             <input matInput 
                    [value]="searchTerm"
                    (input)="onSearchChange($any($event.target)?.value || '')"
-                   placeholder="Número, nome ou documento do devedor"
+                   placeholder="Número, nome ou documento"
                    maxlength="100">
             <mat-icon matSuffix>search</mat-icon>
-            <mat-hint>Busque por número do título, nome ou documento</mat-hint>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="filter-field">
@@ -82,33 +81,7 @@
                    matTooltip="Filtrar por data de vencimento final">
           </mat-form-field>
           
-          <!-- Filtro de Valor Mínimo -->
-          <mat-form-field appearance="outline" class="filter-field value-field">
-            <mat-label>Valor Mín.</mat-label>
-            <input matInput 
-                   type="number"
-                   [(ngModel)]="valueRangeFilter.min"
-                   (ngModelChange)="onValueRangeChange()"
-                   placeholder="0,00"
-                   min="0"
-                   step="0.01"
-                   matTooltip="Filtrar por valor mínimo">
-            <span matPrefix>R$ </span>
-          </mat-form-field>
-          
-          <!-- Filtro de Valor Máximo -->
-          <mat-form-field appearance="outline" class="filter-field value-field">
-            <mat-label>Valor Máx.</mat-label>
-            <input matInput 
-                   type="number"
-                   [(ngModel)]="valueRangeFilter.max"
-                   (ngModelChange)="onValueRangeChange()"
-                   placeholder="0,00"
-                   min="0"
-                   step="0.01"
-                   matTooltip="Filtrar por valor máximo">
-            <span matPrefix>R$ </span>
-          </mat-form-field>
+
 
           <div class="filter-actions">
             <button mat-stroked-button 

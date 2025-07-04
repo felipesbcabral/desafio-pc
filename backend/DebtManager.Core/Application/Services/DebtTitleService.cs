@@ -1,5 +1,6 @@
 using DebtManager.Core.Domain.Entities;
 using DebtManager.Core.Domain.Repositories;
+using DebtManager.Core.Application.DTOs;
 using DebtManager.Core.Domain.ValueObjects;
 using System;
 using System.Collections.Generic;
@@ -113,15 +114,24 @@ public class DebtTitleService(IDebtTitleRepository repository)
         return true;
     }
 
-    public async Task<DebtTitle?> UpdateDebtTitleAsync(Guid id, decimal newInterestRate)
+
+
+    public async Task<DebtTitle?> UpdateDebtTitleAsync(Guid id, UpdateDebtTitleDto updateDto)
     {
         var debtTitle = await _repository.GetByIdAsync(id);
         if (debtTitle == null)
             return null;
 
-        // Como as propriedades são private set, precisaríamos de métodos específicos
-        // Por enquanto, retornamos o título existente
-        // Em uma implementação mais robusta, adicionaríamos métodos de atualização na entidade
+        debtTitle.UpdateComplete(
+            updateDto.TitleNumber, 
+            updateDto.OriginalValue, 
+            updateDto.DueDate, 
+            updateDto.InterestRatePerDay, 
+            updateDto.PenaltyRate, 
+            updateDto.DebtorName, 
+            updateDto.DebtorDocument);
+        
+        await _repository.UpdateAsync(debtTitle);
         
         return debtTitle;
     }

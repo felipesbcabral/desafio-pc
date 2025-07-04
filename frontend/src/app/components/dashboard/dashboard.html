@@ -1,93 +1,114 @@
-<div class="dashboard-container animate-fadeIn">
-  <div class="dashboard-header">
-    <h1>Dashboard</h1>
-    <p>Visão geral do sistema de gerenciamento de dívidas</p>
+<div class="dashboard-container" role="main" aria-label="Dashboard de Títulos de Dívida">
+  <!-- Cabeçalho -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h1 class="dashboard-title">Dashboard</h1>
+      <p class="dashboard-subtitle">Visão geral dos títulos de dívida</p>
+    </div>
+    <div class="header-actions">
+      <button 
+        mat-raised-button 
+        color="primary" 
+        (click)="refreshData()"
+        [disabled]="isLoading"
+        aria-label="Atualizar dados do dashboard">
+        <mat-icon>refresh</mat-icon>
+        Atualizar
+      </button>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p class="loading-text">Carregando dashboard...</p>
   </div>
 
-  <div class="dashboard-stats">
-    <app-card variant="elevated" padding="md" class="stat-card hover-lift">
-      <div class="stat-content">
-        <div class="stat-icon success">
-          <mat-icon>receipt_long</mat-icon>
-        </div>
-        <div class="stat-info">
-          <h3>Total de Títulos</h3>
-          <p class="stat-number">{{ totalTitles }}</p>
-        </div>
+  <!-- Dashboard Content -->
+  <div *ngIf="!isLoading" class="dashboard-content">
+    <!-- Métricas -->
+    <section class="metrics-section" aria-labelledby="metrics-title">
+      <h2 id="metrics-title" class="section-title">Métricas Principais</h2>
+      
+      <div class="metrics-grid">
+        <app-metric-card
+          *ngFor="let metric of metricCards; trackBy: trackByMetric"
+          [data]="metric"
+          (click)="onMetricCardClicked(metric)">
+        </app-metric-card>
       </div>
-    </app-card>
+    </section>
 
-    <app-card variant="elevated" padding="md" class="stat-card hover-lift">
-      <div class="stat-content">
-        <div class="stat-icon warning">
-          <mat-icon>schedule</mat-icon>
-        </div>
-        <div class="stat-info">
-          <h3>Títulos em Atraso</h3>
-          <p class="stat-number">{{ overdueTitles }}</p>
-        </div>
-      </div>
-    </app-card>
+    <mat-divider></mat-divider>
 
-    <app-card variant="elevated" padding="md" class="stat-card hover-lift">
-      <div class="stat-content">
-        <div class="stat-icon info">
-          <mat-icon>attach_money</mat-icon>
-        </div>
-        <div class="stat-info">
-          <h3>Valor Total</h3>
-          <p class="stat-number">{{ totalValue | currency:'BRL':'symbol':'1.2-2' }}</p>
-        </div>
-      </div>
-    </app-card>
 
-    <app-card variant="elevated" padding="md" class="stat-card hover-lift">
-      <div class="stat-content">
-        <div class="stat-icon error">
-          <mat-icon>trending_up</mat-icon>
-        </div>
-        <div class="stat-info">
-          <h3>Valor em Atraso</h3>
-          <p class="stat-number">{{ overdueValue | currency:'BRL':'symbol':'1.2-2' }}</p>
-        </div>
-      </div>
-    </app-card>
-  </div>
 
-  <div class="dashboard-actions">
-    <app-card variant="outlined" padding="lg" title="Ações Rápidas" class="action-card">
-      <div class="action-buttons">
-        <app-button variant="primary" size="lg" routerLink="/debt-titles/new">
-          <mat-icon>add</mat-icon>
-          Novo Título
-        </app-button>
-        <app-button variant="secondary" size="lg" routerLink="/debt-titles">
-          <mat-icon>list</mat-icon>
-          Ver Todos os Títulos
-        </app-button>
-        <app-button variant="warning" size="lg" (clicked)="showOverdueTitles()">
-          <mat-icon>warning</mat-icon>
-          Títulos em Atraso
-        </app-button>
-      </div>
-    </app-card>
 
-    <app-card variant="outlined" padding="lg" title="Títulos Recentes" class="recent-card">
-      <div class="recent-list" *ngIf="recentTitles.length > 0; else noRecentTitles">
-        <div class="recent-item animate-slideInRight" *ngFor="let title of recentTitles">
-          <div class="recent-info">
-            <h4>{{ title.titleNumber }}</h4>
-            <p>{{ title.debtorName }}</p>
-            <small>{{ title.dueDate | date:'dd/MM/yyyy' }}</small>
-          </div>
-          <div class="recent-value">
-            <span>{{ title.originalValue | currency:'BRL':'symbol':'1.2-2' }}</span>
-          </div>
-        </div>
-      </div>
-      <ng-template #noRecentTitles>
-        <p class="no-data">Nenhum título encontrado</p>
-      </ng-template>
-    </app-card>
-  </div>
-</div>
+
+     <!-- Quick Actions -->
+     <section class="quick-actions" aria-labelledby="actions-title">
+       <div class="actions-header">
+         <h2 id="actions-title" class="section-title">
+           <mat-icon>flash_on</mat-icon>
+           Ações Rápidas
+         </h2>
+       </div>
+       
+       <div class="actions-grid">
+         <app-card 
+           variant="outlined" 
+           padding="lg" 
+           class="action-card action-card--primary" 
+           [animateOnHover]="true"
+           [clickable]="true"
+           (cardClick)="onNewTitle()"
+           [appAccessible]="{
+             ariaLabel: 'Criar novo título. Abre formulário para cadastro de novo título.',
+             role: 'button',
+             tabIndex: 0
+           }">
+           <div class="action-content">
+             <div class="action-icon action-icon--primary">
+               <mat-icon>add_circle</mat-icon>
+             </div>
+             <div class="action-body">
+               <h3 class="action-title">Novo Título</h3>
+               <p class="action-description">Cadastrar um novo título</p>
+             </div>
+             <div class="action-arrow">
+               <mat-icon>arrow_forward</mat-icon>
+             </div>
+           </div>
+         </app-card>
+
+         <app-card 
+           variant="outlined" 
+           padding="lg" 
+           class="action-card action-card--secondary" 
+           [animateOnHover]="true"
+           [clickable]="true"
+           (cardClick)="onViewAllTitles()"
+           [appAccessible]="{
+             ariaLabel: 'Ver todos os títulos. Navega para lista completa de títulos.',
+             role: 'button',
+             tabIndex: 0
+           }">
+           <div class="action-content">
+             <div class="action-icon action-icon--secondary">
+               <mat-icon>list_alt</mat-icon>
+             </div>
+             <div class="action-body">
+               <h3 class="action-title">Ver Todos</h3>
+               <p class="action-description">Lista completa de títulos</p>
+             </div>
+             <div class="action-arrow">
+               <mat-icon>arrow_forward</mat-icon>
+             </div>
+           </div>
+         </app-card>
+       </div>
+     </section>
+
+
+   </div>
+ </div>

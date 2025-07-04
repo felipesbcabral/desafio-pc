@@ -104,6 +104,64 @@ public class DebtTitle
         Installments.Add(installment);
     }
 
+    public void UpdateInterestRate(decimal newInterestRate)
+    {
+        if (newInterestRate < 0)
+            throw new ArgumentException("A taxa de juros não pode ser negativa.");
+        
+        InterestRatePerDay = newInterestRate;
+    }
+
+    public void UpdatePenaltyRate(decimal newPenaltyRate)
+    {
+        if (newPenaltyRate < 0)
+            throw new ArgumentException("A taxa de multa não pode ser negativa.");
+        
+        PenaltyRate = newPenaltyRate;
+    }
+
+    public void UpdateDebtor(string debtorName, string debtorDocument)
+    {
+        if (string.IsNullOrWhiteSpace(debtorName))
+            throw new ArgumentException("O nome do devedor é obrigatório.");
+        
+        if (string.IsNullOrWhiteSpace(debtorDocument))
+            throw new ArgumentException("O documento do devedor é obrigatório.");
+        
+        Debtor = new Debtor(debtorName, debtorDocument);
+    }
+
+    public void UpdateTitleNumber(string titleNumber)
+    {
+        if (string.IsNullOrWhiteSpace(titleNumber))
+            throw new ArgumentException("O número do título é obrigatório.");
+        
+        TitleNumber = titleNumber;
+    }
+
+    public void UpdateOriginalValue(decimal originalValue)
+    {
+        if (originalValue <= 0)
+            throw new ArgumentException("O valor original deve ser maior que zero.");
+        
+        OriginalValue = originalValue;
+    }
+
+    public void UpdateDueDate(DateTime dueDate)
+    {
+        DueDate = dueDate;
+    }
+
+    public void UpdateComplete(string titleNumber, decimal originalValue, DateTime dueDate, decimal interestRatePerDay, decimal penaltyRate, string debtorName, string debtorDocument)
+    {
+        UpdateTitleNumber(titleNumber);
+        UpdateOriginalValue(originalValue);
+        UpdateDueDate(dueDate);
+        UpdateInterestRate(interestRatePerDay);
+        UpdatePenaltyRate(penaltyRate);
+        UpdateDebtor(debtorName, debtorDocument);
+    }
+
     private void ValidateEntity()
     {
         if (string.IsNullOrWhiteSpace(TitleNumber))

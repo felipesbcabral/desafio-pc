@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using DebtManager.Core.Application.Services;
 using DebtManager.Core.Domain.Entities;
+using DebtManager.Core.Application.DTOs;
 using DebtManager.Api.DTOs;
 using System.ComponentModel.DataAnnotations;
 
@@ -167,17 +168,22 @@ public class DebtsController : ControllerBase
             UpdatedValue = i.CalculateUpdatedValue(monthlyInterestRate, debtTitle.PenaltyRate)
         }).ToList();
 
-        var maxDaysOverdue = installments.Any() ? installments.Max(i => i.DaysOverdue) : 
-            (DateTime.Now.Date > debtTitle.DueDate.Date ? (DateTime.Now.Date - debtTitle.DueDate.Date).Days : 0);
+        // Calcula dias em atraso baseado na data de vencimento principal do título
+        var titleDaysOverdue = DateTime.Now.Date > debtTitle.DueDate.Date ? 
+            (DateTime.Now.Date - debtTitle.DueDate.Date).Days : 0;
+        
+        // Usa o maior valor entre o atraso do título principal e das parcelas
+        var installmentMaxDaysOverdue = installments.Any() ? installments.Max(i => i.DaysOverdue) : 0;
+        var maxDaysOverdue = Math.Max(titleDaysOverdue, installmentMaxDaysOverdue);
 
-        // Valor original como soma de todas as parcelas (se houver parcelas)
-        var originalValueFromInstallments = installments.Any() ? installments.Sum(i => i.Value) : debtTitle.OriginalValue;
+        // Sempre usa o valor original da entidade, não a soma das parcelas
+        var originalValue = debtTitle.OriginalValue;
 
         return new DebtTitleResponse
         {
             Id = debtTitle.Id,
             TitleNumber = debtTitle.TitleNumber,
-            OriginalValue = originalValueFromInstallments,
+            OriginalValue = originalValue,
             UpdatedValue = debtTitle.CalculateUpdatedValue(),
             DueDate = debtTitle.DueDate,
             InterestRatePerDay = debtTitle.InterestRatePerDay,
@@ -190,5 +196,101 @@ public class DebtsController : ControllerBase
             DaysOverdue = maxDaysOverdue,
             Installments = installments
         };
+    }
+
+    /// <summary>
+    /// Atualiza um título de dívida
+    /// </summary>
+    /// <param name="id">ID do título de dívida</param>
+    /// <param name="request">Dados atualizados do título</param>
+    /// <returns>Título atualizado</returns>
+    /// <response code="200">Título atualizado com sucesso</response>
+    /// <response code="400">Dados inválidos</response>
+    /// <response code="404">Título não encontrado</response>
+    /// <response code="500">Erro interno do servidor</response>
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(DebtTitleResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<DebtTitleResponse>> UpdateDebt(Guid id, [FromBody] UpdateDebtTitleRequest request)
+    {
+        try
+        {
+            if (id == Guid.Empty)
+                return BadRequest("ID inválido");
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Verifica se o título existe
+            var existingDebt = await _debtTitleService.GetByIdAsync(id);
+            if (existingDebt == null)
+                return NotFound($"Título de dívida com ID {id} não encontrado");
+
+            // Converte o request para DTO e atualiza o título completo
+            var updateDto = new UpdateDebtTitleDto
+            {
+                TitleNumber = request.TitleNumber,
+                OriginalValue = request.OriginalValue,
+                DueDate = request.DueDate,
+                InterestRatePerDay = request.InterestRatePerDay,
+                PenaltyRate = request.PenaltyRate,
+                DebtorName = request.DebtorName,
+                DebtorDocument = request.DebtorDocument
+            };
+            
+            var updatedDebt = await _debtTitleService.UpdateDebtTitleAsync(id, updateDto);
+            
+            if (updatedDebt == null)
+                return NotFound($"Título de dívida com ID {id} não encontrado");
+
+            var response = MapToResponse(updatedDebt);
+            return Ok(response);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Dados inválidos ao atualizar título de dívida {Id}: {Message}", id, ex.Message);
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro interno ao atualizar título de dívida {Id}", id);
+            return StatusCode(500, new { error = "Erro interno do servidor" });
+        }
+    }
+
+    /// <summary>
+    /// Remove um título de dívida
+    /// </summary>
+    /// <param name="id">ID do título de dívida</param>
+    /// <returns>Confirmação da remoção</returns>
+    /// <response code="204">Título removido com sucesso</response>
+    /// <response code="400">ID inválido</response>
+    /// <response code="404">Título não encontrado</response>
+    /// <response code="500">Erro interno do servidor</response>
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> DeleteDebt(Guid id)
+    {
+        try
+        {
+            if (id == Guid.Empty)
+                return BadRequest("ID inválido");
+
+            var deleted = await _debtTitleService.DeleteDebtTitleAsync(id);
+            if (!deleted)
+                return NotFound($"Título de dívida com ID {id} não encontrado");
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro interno ao remover título de dívida {Id}", id);
+            return StatusCode(500, new { error = "Erro interno do servidor" });
+        }
     }
 }

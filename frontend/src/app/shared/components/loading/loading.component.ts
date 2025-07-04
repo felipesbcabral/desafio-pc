@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { rotate, pulse, fadeInOut } from '../../animations/animations';
 
 export type LoadingSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export type LoadingVariant = 'spinner' | 'dots' | 'pulse' | 'bars';
@@ -8,6 +9,7 @@ export type LoadingVariant = 'spinner' | 'dots' | 'pulse' | 'bars';
   selector: 'app-loading',
   standalone: true,
   imports: [CommonModule],
+  animations: [rotate, pulse, fadeInOut],
   template: `
     <div 
       [class]="loadingClasses"
@@ -16,8 +18,8 @@ export type LoadingVariant = 'spinner' | 'dots' | 'pulse' | 'bars';
       [attr.aria-live]="'polite'"
     >
       <!-- Spinner variant -->
-      <div *ngIf="variant === 'spinner'" class="loading-spinner">
-        <svg viewBox="0 0 24 24" class="animate-spin">
+      <div *ngIf="variant === 'spinner'" class="loading-spinner" [@rotate]="isVisible">
+        <svg viewBox="0 0 24 24">
           <circle 
             cx="12" 
             cy="12" 
@@ -39,7 +41,7 @@ export type LoadingVariant = 'spinner' | 'dots' | 'pulse' | 'bars';
       </div>
       
       <!-- Pulse variant -->
-      <div *ngIf="variant === 'pulse'" class="loading-pulse">
+      <div *ngIf="variant === 'pulse'" class="loading-pulse" [@pulse]="'loading'">
         <div class="pulse-circle"></div>
       </div>
       
@@ -66,6 +68,8 @@ export class LoadingComponent {
   @Input() ariaLabel: string = 'Carregando conteúdo';
   @Input() inline: boolean = false;
   @Input() overlay: boolean = false;
+  
+  isVisible = true;
 
   get loadingClasses(): string {
     const classes = [

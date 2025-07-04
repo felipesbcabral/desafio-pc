@@ -1,0 +1,226 @@
+<div class="debt-filters-container">
+  <div class="filters-header">
+    <h3 class="filters-title">
+      <mat-icon>filter_list</mat-icon>
+      Filtros Avançados
+    </h3>
+    <div class="filters-actions">
+      <button 
+        mat-stroked-button 
+        color="warn" 
+        (click)="clearFilters()" 
+        [disabled]="!hasActiveFilters() || isLoading"
+        class="clear-button">
+        <mat-icon>clear</mat-icon>
+        Limpar
+      </button>
+    </div>
+  </div>
+
+  <form [formGroup]="filterForm" class="filters-form">
+    <!-- Busca Textual -->
+    <mat-expansion-panel class="filter-section" expanded>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>search</mat-icon>
+          Busca Textual
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      
+      <div class="filter-content">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nome do Devedor</mat-label>
+          <input 
+            matInput 
+            formControlName="debtorName" 
+            placeholder="Digite o nome do devedor"
+            [disabled]="isLoading">
+          <mat-icon matSuffix>person</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Número do Título</mat-label>
+          <input 
+            matInput 
+            formControlName="titleNumber" 
+            placeholder="Digite o número do título"
+            [disabled]="isLoading">
+          <mat-icon matSuffix>confirmation_number</mat-icon>
+        </mat-form-field>
+      </div>
+    </mat-expansion-panel>
+
+    <!-- Faixa de Dias em Atraso -->
+    <mat-expansion-panel class="filter-section">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>schedule</mat-icon>
+          Dias em Atraso
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      
+      <div class="filter-content">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Faixa Predefinida</mat-label>
+          <mat-select 
+            formControlName="selectedOverdueRange" 
+            (selectionChange)="onOverdueRangeChange($event.value)"
+            [disabled]="isLoading">
+            <mat-option [value]="null">Selecione uma faixa</mat-option>
+            <mat-option *ngFor="let range of overdueRanges" [value]="range">
+              {{ range.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="custom-range">
+          <mat-form-field appearance="outline" class="range-input">
+            <mat-label>Mín. (dias)</mat-label>
+            <input 
+              matInput 
+              type="number" 
+              formControlName="customOverdueMin" 
+              (input)="onCustomOverdueChange()"
+              min="0"
+              [disabled]="isLoading">
+          </mat-form-field>
+          
+          <span class="range-separator">até</span>
+          
+          <mat-form-field appearance="outline" class="range-input">
+            <mat-label>Máx. (dias)</mat-label>
+            <input 
+              matInput 
+              type="number" 
+              formControlName="customOverdueMax" 
+              (input)="onCustomOverdueChange()"
+              min="0"
+              [disabled]="isLoading">
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-expansion-panel>
+
+    <!-- Faixa de Valor -->
+    <mat-expansion-panel class="filter-section">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>attach_money</mat-icon>
+          Valor Atualizado
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      
+      <div class="filter-content">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Faixa Predefinida</mat-label>
+          <mat-select 
+            formControlName="selectedValueRange" 
+            (selectionChange)="onValueRangeChange($event.value)"
+            [disabled]="isLoading">
+            <mat-option [value]="null">Selecione uma faixa</mat-option>
+            <mat-option *ngFor="let range of valueRanges" [value]="range">
+              {{ range.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="custom-range">
+          <mat-form-field appearance="outline" class="range-input">
+            <mat-label>Valor Mín. (R$)</mat-label>
+            <input 
+              matInput 
+              type="number" 
+              formControlName="customValueMin" 
+              (input)="onCustomValueChange()"
+              min="0"
+              step="0.01"
+              [disabled]="isLoading">
+          </mat-form-field>
+          
+          <span class="range-separator">até</span>
+          
+          <mat-form-field appearance="outline" class="range-input">
+            <mat-label>Valor Máx. (R$)</mat-label>
+            <input 
+              matInput 
+              type="number" 
+              formControlName="customValueMax" 
+              (input)="onCustomValueChange()"
+              min="0"
+              step="0.01"
+              [disabled]="isLoading">
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-expansion-panel>
+
+    <!-- Status e Opções -->
+    <mat-expansion-panel class="filter-section">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>tune</mat-icon>
+          Status e Opções
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      
+      <div class="filter-content">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Status</mat-label>
+          <mat-select 
+            formControlName="status" 
+            multiple
+            [disabled]="isLoading">
+            <mat-option *ngFor="let status of debtStatuses" [value]="status">
+              {{ getStatusLabel(status) }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="checkbox-options">
+          <mat-checkbox 
+            formControlName="multipleInstallments"
+            [disabled]="isLoading"
+            class="filter-checkbox">
+            Apenas títulos com múltiplas parcelas
+          </mat-checkbox>
+        </div>
+      </div>
+    </mat-expansion-panel>
+  </form>
+
+  <!-- Active Filters Summary -->
+  <div class="active-filters" *ngIf="hasActiveFilters()">
+    <div class="active-filters-header">
+      <mat-icon>filter_alt</mat-icon>
+      <span>Filtros Ativos</span>
+    </div>
+    <div class="active-filters-chips">
+      <mat-chip-set>
+        <mat-chip *ngIf="filterForm.get('debtorName')?.value" removable (removed)="filterForm.patchValue({debtorName: ''})">
+          Devedor: {{ filterForm.get('debtorName')?.value }}
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+        
+        <mat-chip *ngIf="filterForm.get('titleNumber')?.value" removable (removed)="filterForm.patchValue({titleNumber: ''})">
+          Título: {{ filterForm.get('titleNumber')?.value }}
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+        
+        <mat-chip *ngIf="filterForm.get('selectedOverdueRange')?.value" removable (removed)="filterForm.patchValue({selectedOverdueRange: null})">
+          Atraso: {{ filterForm.get('selectedOverdueRange')?.value?.label }}
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+        
+        <mat-chip *ngIf="filterForm.get('selectedValueRange')?.value" removable (removed)="filterForm.patchValue({selectedValueRange: null})">
+          Valor: {{ filterForm.get('selectedValueRange')?.value?.label }}
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+        
+        <mat-chip *ngIf="filterForm.get('multipleInstallments')?.value" removable (removed)="filterForm.patchValue({multipleInstallments: false})">
+          Múltiplas Parcelas
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+      </mat-chip-set>
+    </div>
+  </div>
+</div>

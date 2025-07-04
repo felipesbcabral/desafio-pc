@@ -42,9 +42,7 @@ import { DebtTitle } from '../../../models/debt-title.model';
     MatProgressSpinnerModule,
     MatCardModule,
     FormsModule,
-    ButtonComponent,
-    CardComponent,
-    InputComponent
+    ButtonComponent
   ],
   templateUrl: './debt-title-list.html',
   styleUrl: './debt-title-list.scss'
@@ -360,6 +358,7 @@ export class DebtTitleList implements OnInit, OnDestroy {
           next: () => {
             this.notificationService.success('Título de dívida excluído com sucesso');
             this.loadDebtTitles();
+            this.loadingService.hide();
           },
           error: (error: any) => {
             console.error('Erro ao excluir título de dívida:', error);

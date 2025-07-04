@@ -144,7 +144,7 @@ namespace DebtManager.Core.Migrations
                     b.HasOne("DebtManager.Core.Domain.Entities.DebtTitle", "DebtTitle")
                         .WithMany("Installments")
                         .HasForeignKey("DebtTitleId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("DebtTitle");

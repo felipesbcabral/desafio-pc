@@ -8,7 +8,6 @@ COPY DebtManager-Challenge.sln ./
 # Copy project files
 COPY DebtManager.Api/DebtManager.Api.csproj DebtManager.Api/
 COPY DebtManager.Core/DebtManager.Core.csproj DebtManager.Core/
-COPY DebtManager.Tests/DebtManager.Tests.csproj DebtManager.Tests/
 
 # Restore dependencies
 RUN dotnet restore
@@ -26,15 +25,8 @@ RUN dotnet publish DebtManager.Api/DebtManager.Api.csproj -c Release -o /app/pub
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
-# Install Entity Framework tools for migrations
-RUN dotnet tool install --global dotnet-ef
-ENV PATH="$PATH:/root/.dotnet/tools"
-
 # Copy published application
 COPY --from=build /app/publish .
-
-# Copy source code for EF migrations (needed for dotnet ef commands)
-COPY --from=build /src .
 
 # Expose port
 EXPOSE 8080

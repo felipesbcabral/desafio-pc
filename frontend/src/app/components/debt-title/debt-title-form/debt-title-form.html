@@ -60,12 +60,16 @@
               <input matInput 
                      formControlName="debtorDocument" 
                      placeholder="000.000.000-00 ou 00.000.000/0000-00"
-                     maxlength="18">
+                     maxlength="18"
+                     (input)="onDocumentInput($event)">
+              <mat-icon matSuffix [class.valid-icon]="!isFieldInvalid('debtorDocument') && debtTitleForm.get('debtorDocument')?.value">
+                {{ !isFieldInvalid('debtorDocument') && debtTitleForm.get('debtorDocument')?.value ? 'check_circle' : 'assignment_ind' }}
+              </mat-icon>
+              <mat-hint>Digite apenas números</mat-hint>
               <mat-error *ngIf="isFieldInvalid('debtorDocument')">
                 {{ getErrorMessage('debtorDocument') }}
               </mat-error>
             </mat-form-field>
-
           </div>
         </div>
 
@@ -80,13 +84,15 @@
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>Valor Original</mat-label>
               <input matInput 
-                     type="number"
                      formControlName="originalValue" 
                      placeholder="0,00"
-                     step="0.01"
-                     min="0.01">
+                     (input)="onValueInput($event, 'originalValue')"
+                     (blur)="onValueBlur('originalValue')">
               <span matTextPrefix>R$ </span>
-              <mat-hint>Valor total do título</mat-hint>
+              <mat-icon matSuffix [class.valid-icon]="!isFieldInvalid('originalValue') && debtTitleForm.get('originalValue')?.value">
+                {{ !isFieldInvalid('originalValue') && debtTitleForm.get('originalValue')?.value ? 'check_circle' : 'attach_money' }}
+              </mat-icon>
+              <mat-hint>Digite o valor em reais</mat-hint>
               <mat-error *ngIf="isFieldInvalid('originalValue')">
                 {{ getErrorMessage('originalValue') }}
               </mat-error>
@@ -95,12 +101,16 @@
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>Data de Vencimento</mat-label>
               <input matInput 
-                     [matDatepicker]="picker"
+                     [matDatepicker]="picker" 
                      formControlName="dueDate"
-                     placeholder="dd/mm/aaaa">
+                     placeholder="dd/mm/aaaa"
+                     (dateChange)="onDateChange()">
               <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
               <mat-datepicker #picker></mat-datepicker>
-              <mat-hint>Data da primeira parcela</mat-hint>
+              <mat-icon matSuffix [class.valid-icon]="!isFieldInvalid('dueDate') && debtTitleForm.get('dueDate')?.value">
+                {{ !isFieldInvalid('dueDate') && debtTitleForm.get('dueDate')?.value ? 'check_circle' : 'event' }}
+              </mat-icon>
+              <mat-hint>Selecione a data de vencimento</mat-hint>
               <mat-error *ngIf="isFieldInvalid('dueDate')">
                 {{ getErrorMessage('dueDate') }}
               </mat-error>
@@ -111,13 +121,14 @@
             <mat-form-field appearance="outline" class="third-width">
               <mat-label>Taxa de Juros (% ao dia)</mat-label>
               <input matInput 
-                     type="number"
                      formControlName="interestRatePerDay" 
                      placeholder="0,00"
-                     step="0.01"
-                     min="0"
-                     max="100">
+                     (input)="onPercentageInput($event, 'interestRatePerDay')"
+                     (blur)="onPercentageBlur('interestRatePerDay')">
               <span matTextSuffix>%</span>
+              <mat-icon matSuffix [class.valid-icon]="!isFieldInvalid('interestRatePerDay') && debtTitleForm.get('interestRatePerDay')?.value">
+                {{ !isFieldInvalid('interestRatePerDay') && debtTitleForm.get('interestRatePerDay')?.value ? 'check_circle' : 'percent' }}
+              </mat-icon>
               <mat-hint>Taxa diária de juros</mat-hint>
               <mat-error *ngIf="isFieldInvalid('interestRatePerDay')">
                 {{ getErrorMessage('interestRatePerDay') }}
@@ -127,14 +138,15 @@
             <mat-form-field appearance="outline" class="third-width">
               <mat-label>Taxa de Multa (%)</mat-label>
               <input matInput 
-                     type="number"
                      formControlName="penaltyRate" 
                      placeholder="0,00"
-                     step="0.01"
-                     min="0"
-                     max="100">
+                     (input)="onPercentageInput($event, 'penaltyRate')"
+                     (blur)="onPercentageBlur('penaltyRate')">
               <span matTextSuffix>%</span>
-              <mat-hint>Multa por atraso</mat-hint>
+              <mat-icon matSuffix [class.valid-icon]="!isFieldInvalid('penaltyRate') && debtTitleForm.get('penaltyRate')?.value">
+                {{ !isFieldInvalid('penaltyRate') && debtTitleForm.get('penaltyRate')?.value ? 'check_circle' : 'gavel' }}
+              </mat-icon>
+              <mat-hint>Taxa de multa por atraso</mat-hint>
               <mat-error *ngIf="isFieldInvalid('penaltyRate')">
                 {{ getErrorMessage('penaltyRate') }}
               </mat-error>
@@ -143,16 +155,57 @@
             <mat-form-field appearance="outline" class="third-width">
               <mat-label>Número de Parcelas</mat-label>
               <input matInput 
-                     type="number"
+                     type="number" 
                      formControlName="installmentCount" 
                      placeholder="1"
                      min="1"
-                     max="12">
-              <mat-hint>1 a 12 parcelas</mat-hint>
+                     max="12"
+                     (change)="onInstallmentCountChange()">
+              <mat-icon matSuffix [class.valid-icon]="!isFieldInvalid('installmentCount') && debtTitleForm.get('installmentCount')?.value">
+                {{ !isFieldInvalid('installmentCount') && debtTitleForm.get('installmentCount')?.value ? 'check_circle' : 'format_list_numbered' }}
+              </mat-icon>
+              <mat-hint>Máximo 12 parcelas</mat-hint>
               <mat-error *ngIf="isFieldInvalid('installmentCount')">
                 {{ getErrorMessage('installmentCount') }}
               </mat-error>
             </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Seção de Parcelas -->
+        <div class="form-section" *ngIf="previewInstallments.length > 0">
+          <div class="section-header">
+            <mat-icon>receipt_long</mat-icon>
+            <h3>Parcelas Geradas ({{ previewInstallments.length }})</h3>
+          </div>
+          
+          <div class="installments-preview">
+            <div class="installments-summary">
+              <div class="summary-item">
+                <span class="label">Valor Total:</span>
+                <span class="value">{{ getTotalValue() | currency:'BRL':'symbol':'1.2-2' }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Valor por Parcela:</span>
+                <span class="value">{{ getInstallmentValue() | currency:'BRL':'symbol':'1.2-2' }}</span>
+              </div>
+            </div>
+            
+            <div class="installments-table">
+              <div class="table-header">
+                <span>Parcela</span>
+                <span>Vencimento</span>
+                <span>Valor</span>
+                <span>Status</span>
+              </div>
+              
+              <div class="table-row" *ngFor="let installment of previewInstallments; let i = index">
+                <span class="installment-number">{{ i + 1 }}/{{ previewInstallments.length }}</span>
+                <span class="due-date">{{ installment.dueDate | date:'dd/MM/yyyy' }}</span>
+                <span class="amount">{{ installment.amount | currency:'BRL':'symbol':'1.2-2' }}</span>
+                <span class="status pending">Pendente</span>
+              </div>
+            </div>
           </div>
         </div>
 

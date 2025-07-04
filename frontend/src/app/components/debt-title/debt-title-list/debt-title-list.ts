@@ -13,6 +13,9 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { CardComponent } from '../../../shared/components/card/card.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 
@@ -38,7 +41,10 @@ import { DebtTitle } from '../../../models/debt-title.model';
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatCardModule,
-    FormsModule
+    FormsModule,
+    ButtonComponent,
+    CardComponent,
+    InputComponent
   ],
   templateUrl: './debt-title-list.html',
   styleUrl: './debt-title-list.scss'

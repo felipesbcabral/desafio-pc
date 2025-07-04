@@ -1,0 +1,65 @@
+.app-icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  color: currentColor;
+  transition: all var(--transition-fast);
+}
+
+// Size variants
+.icon-xs {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.icon-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.icon-md {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.icon-lg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.icon-xl {
+  width: 2rem;
+  height: 2rem;
+}
+
+.icon-2xl {
+  width: 3rem;
+  height: 3rem;
+}
+
+// Interactive states
+.app-icon:hover {
+  transform: scale(1.1);
+}
+
+// Accessibility
+@media (prefers-reduced-motion: reduce) {
+  .app-icon {
+    transition: none;
+  }
+  
+  .app-icon:hover {
+    transform: none;
+  }
+  
+  .animate-spin {
+    animation: none;
+  }
+}
+
+// High contrast mode
+@media (prefers-contrast: high) {
+  .app-icon {
+    stroke-width: 2.5;
+  }
+}

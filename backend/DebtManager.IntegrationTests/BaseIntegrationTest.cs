@@ -33,27 +33,6 @@ public class BaseIntegrationTest : IDisposable
         _httpClient = _apiFactory.CreateClient();
     }
 
-    // Overload for backward compatibility
-    protected BaseIntegrationTest(ApiFactory apiFactory)
-    {
-        _apiFactory = apiFactory;
-        _jsonSerializerOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-        };
-
-        _scope = apiFactory.Services.CreateScope();
-        _dbContext = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        
-        // Ensure database is created and apply migrations
-        _dbContext.Database.EnsureCreated();
-        
-        // Clean database before each test
-        CleanDatabase();
-        
-        _httpClient = _apiFactory.CreateClient();
-    }
-
     private void CleanDatabase()
     {
         // Remove all data from tables

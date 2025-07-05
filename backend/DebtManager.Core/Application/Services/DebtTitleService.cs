@@ -3,6 +3,7 @@ using DebtManager.Core.Domain.Repositories;
 using DebtManager.Core.Application.DTOs;
 using DebtManager.Core.Domain.ValueObjects;
 using DebtManager.Core.Application.Interfaces;
+using DebtManager.Core.Application.Common;
 using FluentValidation;
 using System;
 using System.Collections.Generic;
@@ -25,112 +26,191 @@ public class DebtTitleService : IDebtTitleService
         IRequestMappingService requestMappingService)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-        _createValidator = createValidator;
-        _updateValidator = updateValidator;
-        _requestMappingService = requestMappingService;
+        _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
+        _updateValidator = updateValidator ?? throw new ArgumentNullException(nameof(updateValidator));
+        _requestMappingService = requestMappingService ?? throw new ArgumentNullException(nameof(requestMappingService));
     }
 
-    public async Task<DebtTitle> GetByIdAsync(Guid id) 
-        => await _repository.GetByIdAsync(id);
-
-    public async Task<IEnumerable<DebtTitle>> GetAllAsync()
+    public async Task<Result<DebtTitle>> GetByIdAsync(Guid id)
     {
-        return await _repository.GetAllAsync();
+        try
+        {
+            var debtTitle = await _repository.GetByIdAsync(id);
+            if (debtTitle == null)
+            {
+                return Result<DebtTitle>.Failure($"DebtTitle with id {id} not found");
+            }
+            return Result<DebtTitle>.Success(debtTitle);
+        }
+        catch (Exception ex)
+        {
+            return Result<DebtTitle>.Failure(ex.Message);
+        }
     }
 
-    public async Task<IEnumerable<DebtTitle>> GetByDebtorDocumentAsync(string debtorDocument)
+    public async Task<Result<IEnumerable<DebtTitle>>> GetAllAsync()
+    {
+        try
+        {
+            var debtTitles = await _repository.GetAllAsync();
+            return Result<IEnumerable<DebtTitle>>.Success(debtTitles);
+        }
+        catch (Exception ex)
+        {
+            return Result<IEnumerable<DebtTitle>>.Failure(ex.Message);
+        }
+    }
+
+    public async Task<Result<IEnumerable<DebtTitle>>> GetByDebtorDocumentAsync(string debtorDocument)
     {
         if (string.IsNullOrWhiteSpace(debtorDocument))
-            throw new ArgumentException("Documento é obrigatório.");
-
-        return await _repository.GetByDebtorDocumentAsync(debtorDocument);
-    }
-
-    public async Task<DebtTitle> CreateDebtTitleAsync(CreateDebtTitleDto dto)
-    {
-        var debtor = new Debtor(dto.DebtorName, dto.DebtorDocument);
-        var originalValue = dto.OriginalValue ?? dto.Installments.Sum(i => i.Value);
-        var dueDate = dto.Installments.FirstOrDefault()?.DueDate ?? DateTime.Now.AddDays(30);
-        
-        var debtTitle = new DebtTitle(
-            dto.TitleNumber,
-            originalValue,
-            dueDate,
-            dto.InterestRatePerDay,
-            dto.PenaltyRate,
-            debtor);
-
-        foreach (var installmentDto in dto.Installments)
         {
-            debtTitle.AddInstallment(
-                installmentDto.InstallmentNumber,
-                installmentDto.Value,
-                installmentDto.DueDate);
+            return Result<IEnumerable<DebtTitle>>.Failure("Documento é obrigatório.");
         }
 
-        await _repository.AddAsync(debtTitle);
-        return debtTitle;
+        try
+        {
+            var debtTitles = await _repository.GetByDebtorDocumentAsync(debtorDocument);
+            return Result<IEnumerable<DebtTitle>>.Success(debtTitles);
+        }
+        catch (Exception ex)
+        {
+            return Result<IEnumerable<DebtTitle>>.Failure(ex.Message);
+        }
     }
 
-    public async Task<DebtTitle> CreateFromRequestAsync(CreateDebtTitleRequest request)
+    public async Task<Result<DebtTitle>> CreateDebtTitleAsync(CreateDebtTitleDto dto)
+    {
+        try
+        {
+            var debtor = new Debtor(dto.DebtorName, dto.DebtorDocument);
+            var originalValue = dto.OriginalValue ?? dto.Installments.Sum(i => i.Value);
+            var dueDate = dto.Installments.FirstOrDefault()?.DueDate ?? DateTime.Now.AddDays(30);
+            
+            var debtTitle = new DebtTitle(
+                dto.TitleNumber,
+                originalValue,
+                dueDate,
+                dto.InterestRatePerDay,
+                dto.PenaltyRate,
+                debtor);
+
+            foreach (var installmentDto in dto.Installments)
+            {
+                debtTitle.AddInstallment(
+                    installmentDto.InstallmentNumber,
+                    installmentDto.Value,
+                    installmentDto.DueDate);
+            }
+
+            await _repository.AddAsync(debtTitle);
+            return Result<DebtTitle>.Success(debtTitle);
+        }
+        catch (Exception ex)
+        {
+            return Result<DebtTitle>.Failure(ex.Message);
+        }
+    }
+
+    public async Task<Result<DebtTitle>> CreateFromRequestAsync(CreateDebtTitleRequest request)
     {
         var validationResult = await _createValidator.ValidateAsync(request);
         if (!validationResult.IsValid)
         {
-            throw new ValidationException(validationResult.Errors);
+            return Result<DebtTitle>.Failure(validationResult.Errors);
         }
 
-        var dto = _requestMappingService.MapToCreateDto(request);
-        return await CreateDebtTitleAsync(dto);
+        try
+        {
+            var dto = _requestMappingService.MapToCreateDto(request);
+            var result = await CreateDebtTitleAsync(dto);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            return Result<DebtTitle>.Failure(ex.Message);
+        }
     }
 
-    public async Task<DebtTitle> UpdateFromRequestAsync(Guid id, UpdateDebtTitleRequest request)
+    public async Task<Result<DebtTitle>> UpdateFromRequestAsync(Guid id, UpdateDebtTitleRequest request)
     {
         var validationResult = await _updateValidator.ValidateAsync(request);
         if (!validationResult.IsValid)
         {
-            throw new ValidationException(validationResult.Errors);
+            return Result<DebtTitle>.Failure(validationResult.Errors);
         }
 
-        var dto = _requestMappingService.MapToUpdateDto(request);
-        return await UpdateDebtTitleAsync(id, dto);
+        try
+        {
+            var dto = _requestMappingService.MapToUpdateDto(request);
+            var result = await UpdateDebtTitleAsync(id, dto);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            return Result<DebtTitle>.Failure(ex.Message);
+        }
     }
 
-    public async Task<DebtTitle> UpdateDebtTitleAsync(Guid id, UpdateDebtTitleDto updateDto)
+    public async Task<Result<DebtTitle>> UpdateDebtTitleAsync(Guid id, UpdateDebtTitleDto updateDto)
     {
-        var debtTitle = await _repository.GetByIdAsync(id)??
-            throw new ArgumentException($"DebtTitle with id {id} not found");
+        try
+        {
+            var debtTitle = await _repository.GetByIdAsync(id);
+            if (debtTitle == null)
+            {
+                return Result<DebtTitle>.Failure($"DebtTitle with id {id} not found");
+            }
 
-        debtTitle.UpdateComplete(
-            updateDto.TitleNumber, 
-            updateDto.OriginalValue, 
-            updateDto.DueDate, 
-            updateDto.InterestRatePerDay, 
-            updateDto.PenaltyRate, 
-            updateDto.DebtorName, 
-            updateDto.DebtorDocument);
-        
-        await _repository.UpdateAsync(debtTitle);
-        
-        return debtTitle;
+            debtTitle.UpdateComplete(
+                updateDto.TitleNumber, 
+                updateDto.OriginalValue, 
+                updateDto.DueDate, 
+                updateDto.InterestRatePerDay, 
+                updateDto.PenaltyRate, 
+                updateDto.DebtorName, 
+                updateDto.DebtorDocument);
+            
+            await _repository.UpdateAsync(debtTitle);
+            
+            return Result<DebtTitle>.Success(debtTitle);
+        }
+        catch (Exception ex)
+        {
+            return Result<DebtTitle>.Failure(ex.Message);
+        }
     }
 
 
 
-    public async Task<bool> DeleteAsync(Guid id)
+    public async Task<Result<bool>> DeleteAsync(Guid id)
     {
-        var debtTitle = await _repository.GetByIdAsync(id);
+        try
+        {
+            var debtTitle = await _repository.GetByIdAsync(id);
 
-        if (debtTitle == null)
-            return false;
+            if (debtTitle == null)
+            {
+                return Result<bool>.Failure($"DebtTitle with id {id} not found");
+            }
 
-        await _repository.DeleteAsync(debtTitle.Id);
-        return true;
+            await _repository.DeleteAsync(debtTitle.Id);
+            return Result<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            return Result<bool>.Failure(ex.Message);
+        }
     }
 
     public async Task<decimal> GetTotalDebtValueAsync()
     {
-        var allDebtTitles = await GetAllAsync();
-        return allDebtTitles.Sum(dt => dt.CalculateUpdatedValue());
+        var result = await GetAllAsync();
+        if (!result.IsSuccess)
+        {
+            return 0m;
+        }
+        
+        return result.Data!.Sum(dt => dt.CalculateUpdatedValue());
     }
 }

@@ -157,14 +157,14 @@ import { CustomValidators } from '../../../../shared/validators/custom-validator
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <app-pascho-input
-                label="Taxa de Juros (% ao dia)"
+                label="Taxa de Juros (% ao mês)"
                 placeholder="0.00"
                 type="number"
                 [step]="0.01"
                 [required]="true"
-                formControlName="interestRatePerDay"
-                [errorMessage]="getErrorMessage('interestRatePerDay', debtForm)"
-                helpText="Taxa aplicada progressivamente a cada parcela"
+                formControlName="interestRatePerMonth"
+                [errorMessage]="getErrorMessage('interestRatePerMonth', debtForm)"
+                helpText="Taxa mensal que será convertida para aplicação diária"
                 (input)="onInstallmentCountChange()"
               ></app-pascho-input>
               
@@ -216,12 +216,12 @@ import { CustomValidators } from '../../../../shared/validators/custom-validator
                   <span class="ml-2 font-medium">{{ debtForm.get('numberOfInstallments')?.value }}x</span>
                 </div>
                 <div>
-                  <span class="text-blue-700">Total com Juros:</span>
-                  <span class="ml-2 font-medium">R$ {{ getTotalWithInterest() | number:'1.2-2' }}</span>
+                  <span class="text-blue-700">Valor por Parcela:</span>
+                  <span class="ml-2 font-medium">R$ {{ (debtForm.get('originalValue')?.value / debtForm.get('numberOfInstallments')?.value) | number:'1.2-2' }}</span>
                 </div>
               </div>
               <div class="mt-3 text-xs text-blue-600">
-                <p>* Juros de {{ debtForm.get('interestRatePerDay')?.value }}% ao dia aplicados progressivamente</p>
+                <p>* Juros de {{ debtForm.get('interestRatePerMonth')?.value }}% ao mês aplicados progressivamente</p>
                 <p>* Multa de {{ debtForm.get('penaltyRate')?.value }}% aplicada em cada parcela</p>
               </div>
             </div>
@@ -355,7 +355,7 @@ import { CustomValidators } from '../../../../shared/validators/custom-validator
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <span class="text-secondary-600">Taxa de Juros:</span>
-                  <span class="ml-2 font-medium">{{ debtForm.get('interestRatePerDay')?.value }}% ao dia</span>
+                  <span class="ml-2 font-medium">{{ debtForm.get('interestRatePerMonth')?.value }}% ao mês</span>
                 </div>
                 <div>
                   <span class="text-secondary-600">Taxa de Multa:</span>
@@ -366,12 +366,12 @@ import { CustomValidators } from '../../../../shared/validators/custom-validator
               <div class="bg-blue-50 border border-blue-200 rounded p-3 mt-3">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <span class="text-blue-700 font-medium">Valor Total com Juros:</span>
-                    <span class="ml-2 font-bold text-blue-900">R$ {{ getTotalWithInterest() | number:'1.2-2' }}</span>
+                    <span class="text-blue-700 font-medium">Valor Total:</span>
+                    <span class="ml-2 font-bold text-blue-900">R$ {{ debtForm.get('originalValue')?.value | number:'1.2-2' }}</span>
                   </div>
                   <div>
-                    <span class="text-blue-700 font-medium">Juros Totais:</span>
-                    <span class="ml-2 font-bold text-blue-900">R$ {{ (getTotalWithInterest() - debtForm.get('originalValue')?.value) | number:'1.2-2' }}</span>
+                    <span class="text-blue-700 font-medium">Observação:</span>
+                    <span class="ml-2 font-bold text-blue-900">Juros e multas serão calculados pelo sistema</span>
                   </div>
                 </div>
               </div>
@@ -450,7 +450,7 @@ export class DebtCreateComponent {
       originalValue: ['', [Validators.required, CustomValidators.positiveValue]],
       numberOfInstallments: ['', [Validators.required, Validators.min(1), Validators.max(60)]],
       dueDate: ['', [Validators.required, CustomValidators.dateFormat]],
-      interestRatePerDay: ['', Validators.required],
+      interestRatePerMonth: ['', Validators.required],
       penaltyRate: ['', Validators.required]
     });
 
@@ -463,7 +463,7 @@ export class DebtCreateComponent {
       this.onInstallmentCountChange();
     });
     
-    this.debtForm.get('interestRatePerDay')?.valueChanges.subscribe(() => {
+    this.debtForm.get('interestRatePerMonth')?.valueChanges.subscribe(() => {
       this.onInstallmentCountChange();
     });
     
@@ -575,6 +575,10 @@ export class DebtCreateComponent {
     return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
   }
 
+  private formatDateForInput(date: string): string {
+    return new Date(date).toISOString().split('T')[0];
+  }
+
   onSubmit(): void {
     if (this.isSubmitting) return;
     
@@ -591,11 +595,14 @@ export class DebtCreateComponent {
     this.isSubmitting = true;
 
     // Preparar dados para envio
+    const monthlyRate = parseFloat(this.debtForm.get('interestRatePerMonth')?.value);
+    const dailyRate = monthlyRate / 30; // Converter taxa mensal para diária
+    
     const createDebtRequest = {
       titleNumber: this.debtForm.get('titleNumber')?.value,
       originalValue: parseFloat(this.debtForm.get('originalValue')?.value),
       dueDate: this.formatDateForBackend(this.debtForm.get('dueDate')?.value),
-      interestRatePerDay: parseFloat(this.debtForm.get('interestRatePerDay')?.value),
+      interestRatePerDay: dailyRate,
       penaltyRate: parseFloat(this.debtForm.get('penaltyRate')?.value),
       debtorName: this.debtorForm.get('name')?.value,
       debtorDocument: this.debtorForm.get('document')?.value,
@@ -618,13 +625,6 @@ export class DebtCreateComponent {
     });
   }
 
-  private calculateTotalValue(): number {
-    return this.getInstallmentsFormArray().controls.reduce((total, control) => {
-      const value = parseFloat(control.get('value')?.value || '0');
-      return total + value;
-    }, 0);
-  }
-
   onInstallmentCountChange(): void {
     const numberOfInstallments = this.debtForm.get('numberOfInstallments')?.value;
     const originalValue = this.debtForm.get('originalValue')?.value;
@@ -633,22 +633,13 @@ export class DebtCreateComponent {
       this.generateInstallments();
     }
   }
-  
-  getTotalWithInterest(): number {
-    return this.getInstallmentsFormArray().controls.reduce((total, control) => {
-      const value = parseFloat(control.get('value')?.value || '0');
-      return total + value;
-    }, 0);
-  }
 
   generateInstallments(): void {
-    const numberOfInstallments = parseInt(this.debtForm.get('numberOfInstallments')?.value || '0');
-    const originalValue = parseFloat(this.debtForm.get('originalValue')?.value || '0');
-    const interestRate = parseFloat(this.debtForm.get('interestRatePerDay')?.value || '0') / 100;
-    const penaltyRate = parseFloat(this.debtForm.get('penaltyRate')?.value || '0') / 100;
+    const numberOfInstallments = this.debtForm.get('numberOfInstallments')?.value;
+    const originalValue = this.debtForm.get('originalValue')?.value;
     const firstDueDate = this.debtForm.get('dueDate')?.value;
 
-    if (numberOfInstallments <= 0 || originalValue <= 0) {
+    if (!numberOfInstallments || !originalValue || !firstDueDate) {
       return;
     }
 
@@ -658,34 +649,19 @@ export class DebtCreateComponent {
       installmentsArray.removeAt(0);
     }
 
-    // Calcular valor base da parcela
-    const baseInstallmentValue = originalValue / numberOfInstallments;
-    
-    // Gerar parcelas
+    // Gerar parcelas básicas sem cálculos - o backend fará os cálculos
+    const baseValue = originalValue / numberOfInstallments;
+
     for (let i = 0; i < numberOfInstallments; i++) {
-      // Calcular juros compostos para cada parcela
-      const daysFromFirst = i * 30; // Assumindo parcelas mensais
-      const interestAmount = baseInstallmentValue * interestRate * daysFromFirst;
-      const penaltyAmount = baseInstallmentValue * penaltyRate;
-      const finalValue = baseInstallmentValue + interestAmount + penaltyAmount;
-      
       // Calcular data de vencimento
-      let dueDate = '';
-      if (firstDueDate) {
-        const [day, month, year] = firstDueDate.split('/');
-        const baseDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-        baseDate.setMonth(baseDate.getMonth() + i);
-        
-        const newDay = baseDate.getDate().toString().padStart(2, '0');
-        const newMonth = (baseDate.getMonth() + 1).toString().padStart(2, '0');
-        const newYear = baseDate.getFullYear().toString();
-        dueDate = `${newDay}/${newMonth}/${newYear}`;
-      }
+      const dueDate = new Date(firstDueDate);
+      dueDate.setMonth(dueDate.getMonth() + i + 1);
       
-      const installmentGroup = this.fb.group({
-        installmentNumber: [i + 1, [Validators.required, Validators.min(1)]],
-        value: [parseFloat(finalValue.toFixed(2)), [Validators.required, CustomValidators.positiveValue]],
-        dueDate: [dueDate, [Validators.required, CustomValidators.dateFormat]]
+      const installmentGroup = this.createInstallmentFormGroup();
+      installmentGroup.patchValue({
+        installmentNumber: i + 1,
+        value: baseValue.toFixed(2),
+        dueDate: this.formatDateForInput(dueDate.toISOString())
       });
       
       installmentsArray.push(installmentGroup);

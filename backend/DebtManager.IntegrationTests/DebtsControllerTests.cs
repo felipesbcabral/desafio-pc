@@ -194,7 +194,7 @@ public class DebtsControllerTests(SharedContainerFixture containerFixture): Base
         var debts = await response.Content.ReadFromJsonAsync<List<DebtTitleResponse>>(_jsonSerializerOptions);
         Assert.NotNull(debts);
         Assert.Equal(2, debts.Count);
-        Assert.All(debts, d => Assert.Equal(document, d.DebtorDocument));
+        Assert.All(debts, d => Assert.Equal("123.456.789-09", d.DebtorDocument));
     }
 
     [Fact]

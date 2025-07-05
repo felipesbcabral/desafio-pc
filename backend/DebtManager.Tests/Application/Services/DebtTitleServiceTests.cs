@@ -55,8 +55,9 @@ public class DebtTitleServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().HaveCount(2);
-        result.Should().BeEquivalentTo(expectedDebtTitles);
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().HaveCount(2);
+        result.Data.Should().BeEquivalentTo(expectedDebtTitles);
 
         _mockRepository.Verify(r => r.GetAllAsync(), Times.Once);
     }
@@ -76,7 +77,8 @@ public class DebtTitleServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().Be(expectedDebtTitle);
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().Be(expectedDebtTitle);
 
         _mockRepository.Verify(r => r.GetByIdAsync(debtTitleId), Times.Once);
     }
@@ -94,7 +96,9 @@ public class DebtTitleServiceTests
         var result = await _service.GetByIdAsync(debtTitleId);
 
         // Assert
-        result.Should().BeNull();
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeFalse();
+        result.Data.Should().BeNull();
 
         _mockRepository.Verify(r => r.GetByIdAsync(debtTitleId), Times.Once);
     }
@@ -118,8 +122,9 @@ public class DebtTitleServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().HaveCount(2);
-        result.Should().BeEquivalentTo(expectedDebtTitles);
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().HaveCount(2);
+        result.Data.Should().BeEquivalentTo(expectedDebtTitles);
 
         _mockRepository.Verify(r => r.GetByDebtorDocumentAsync(document), Times.Once);
     }
@@ -128,12 +133,15 @@ public class DebtTitleServiceTests
     [InlineData("")]
     [InlineData(" ")]
     [InlineData(null)]
-    public async Task GetByDebtorDocumentAsync_ShouldThrowArgumentException_WhenDocumentIsInvalid(string invalidDocument)
+    public async Task GetByDebtorDocumentAsync_ShouldReturnFailure_WhenDocumentIsInvalid(string invalidDocument)
     {
-        // Act & Assert
-        var action = async () => await _service.GetByDebtorDocumentAsync(invalidDocument);
-        await action.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("Documento é obrigatório.");
+        // Act
+        var result = await _service.GetByDebtorDocumentAsync(invalidDocument);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorMessage.Should().Be("Documento é obrigatório.");
 
         _mockRepository.Verify(r => r.GetByDebtorDocumentAsync(It.IsAny<string>()), Times.Never);
     }
@@ -161,7 +169,9 @@ public class DebtTitleServiceTests
         var result = await _service.DeleteAsync(debtTitleId);
 
         // Assert
-        result.Should().BeTrue();
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().BeTrue();
 
         _mockRepository.Verify(r => r.GetByIdAsync(debtTitleId), Times.Once);
         _mockRepository.Verify(r => r.DeleteAsync(It.IsAny<Guid>()), Times.Once);
@@ -180,7 +190,8 @@ public class DebtTitleServiceTests
         var result = await _service.DeleteAsync(debtTitleId);
 
         // Assert
-        result.Should().BeFalse();
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeFalse();
 
         _mockRepository.Verify(r => r.GetByIdAsync(debtTitleId), Times.Once);
         _mockRepository.Verify(r => r.DeleteAsync(It.IsAny<Guid>()), Times.Never);

@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DebtManager.Api", "DebtMana
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DebtManager.Tests", "DebtManager.Tests\DebtManager.Tests.csproj", "{E7EF2149-1049-4A41-AAB0-50EC4094114F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DebtManager.IntegrationTests", "DebtManager.IntegrationTests\DebtManager.IntegrationTests.csproj", "{0C6F4478-7866-4F70-A5E6-17DBF696E055}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,18 @@ Global
 		{E7EF2149-1049-4A41-AAB0-50EC4094114F}.Release|x64.Build.0 = Release|Any CPU
 		{E7EF2149-1049-4A41-AAB0-50EC4094114F}.Release|x86.ActiveCfg = Release|Any CPU
 		{E7EF2149-1049-4A41-AAB0-50EC4094114F}.Release|x86.Build.0 = Release|Any CPU
+		{0C6F4478-7866-4F70-A5E6-17DBF696E055}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C6F4478-7866-4F70-A5E6-17DBF696E055}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C6F4478-7866-4F70-A5E6-17DBF696E055}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0C6F4478-7866-4F70-A5E6-17DBF696E055}.Debug|x64.Build.0 = Debug|Any CPU
+		{0C6F4478-7866-4F70-A5E6-17DBF696E055}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0C6F4478-7866-4F70-A5E6-17DBF696E055}.Debug|x86.Build.0 = Debug|Any CPU
+		{0C6F4478-7866-4F70-A5E6-17DBF696E055}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C6F4478-7866-4F70-A5E6-17DBF696E055}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C6F4478-7866-4F70-A5E6-17DBF696E055}.Release|x64.ActiveCfg = Release|Any CPU
+		{0C6F4478-7866-4F70-A5E6-17DBF696E055}.Release|x64.Build.0 = Release|Any CPU
+		{0C6F4478-7866-4F70-A5E6-17DBF696E055}.Release|x86.ActiveCfg = Release|Any CPU
+		{0C6F4478-7866-4F70-A5E6-17DBF696E055}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

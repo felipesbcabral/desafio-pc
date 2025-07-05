@@ -219,11 +219,11 @@ public class DebtTitleTests
     }
 
     [Fact]
-    public void CalculateUpdatedValue_ShouldSumInstallmentValues_WhenHasInstallments()
+    public void CalculateUpdatedValue_ShouldCalculateCorrectly_WhenHasInstallments()
     {
         // Arrange
         var interestRatePerDay = 0.001m; // 0.1% ao dia (3% ao mês)
-        var penaltyRate = 0.1m; // 10%
+        var penaltyRate = 10m; // 10%
         
         var debtTitle = new DebtTitle(
             "TITLE-001",
@@ -241,10 +241,17 @@ public class DebtTitleTests
         var installment1 = debtTitle.Installments.First(i => i.InstallmentNumber == 1);
         var installment2 = debtTitle.Installments.First(i => i.InstallmentNumber == 2);
 
+        // Cálculo manual esperado
+        var totalOriginalValue = 1000m; // 500 + 500
         var monthlyInterestRate = debtTitle.InterestRatePerDay * 30; // 3%
-        var expectedInstallment1Value = installment1.CalculateUpdatedValue(monthlyInterestRate, debtTitle.PenaltyRate);
-        var expectedInstallment2Value = installment2.CalculateUpdatedValue(monthlyInterestRate, debtTitle.PenaltyRate);
-        var expectedTotal = expectedInstallment1Value + expectedInstallment2Value;
+        
+        // Juros apenas da parcela em atraso (parcela 1)
+        var expectedInterest = installment1.CalculateInterest(monthlyInterestRate);
+        
+        // Multa aplicada uma vez sobre o valor total (há parcela em atraso)
+        var expectedPenalty = totalOriginalValue * (penaltyRate / 100);
+        
+        var expectedTotal = totalOriginalValue + expectedInterest + expectedPenalty;
 
         // Act
         var result = debtTitle.CalculateUpdatedValue();

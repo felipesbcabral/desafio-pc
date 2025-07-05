@@ -7,6 +7,7 @@ import { PaschoCardComponent } from '../../../../shared/components/pascho-card/p
 import { PaschoButtonComponent } from '../../../../shared/components/pascho-button/pascho-button.component';
 import { DebtService } from '../../../../core/services/debt.service';
 import { Debt } from '../../../../core/models/debt.model';
+import { CustomValidators } from '../../../../shared/validators/custom-validators';
 
 @Component({
   selector: 'app-debt-detail',
@@ -330,19 +331,15 @@ export class DebtDetailComponent implements OnInit, OnDestroy {
     return new Intl.DateTimeFormat('pt-BR').format(dateObj);
   }
 
-  formatDocument(document: string): string {
-    if (document.length === 11) {
-      // CPF
-      return document.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    } else if (document.length === 14) {
-      // CNPJ
-      return document.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-    }
-    return document;
-  }
+
 
   formatRate(rate: number): string {
+    // Exibir a taxa como recebida do backend
     return rate.toFixed(2);
+  }
+
+  formatDocument(document: string): string {
+    return CustomValidators.formatDocument(document);
   }
 
   getInstallmentStatus(installment: any): { class: string; icon: string; text: string } {

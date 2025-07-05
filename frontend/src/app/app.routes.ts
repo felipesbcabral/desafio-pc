@@ -1,48 +1,28 @@
 import { Routes } from '@angular/router';
-import { MainLayout } from './layout/main-layout/main-layout';
-import { Dashboard } from './components/dashboard/dashboard';
-import { DebtTitleList } from './components/debt-title/debt-title-list/debt-title-list';
-import { DebtTitleFormComponent } from './components/debt-title/debt-title-form/debt-title-form';
-import { DebtTitleDetail } from './components/debt-title/debt-title-detail/debt-title-detail';
-import { NotFound } from './shared/not-found/not-found';
 
 export const routes: Routes = [
   {
     path: '',
-    component: MainLayout,
+    redirectTo: '/dashboard',
+    pathMatch: 'full'
+  },
+  {
+    path: '',
+    loadComponent: () => import('./layouts/main-layout/main-layout.component').then(m => m.MainLayoutComponent),
     children: [
-      { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
-      { 
-        path: 'dashboard', 
-        component: Dashboard,
-        data: { animation: 'Dashboard' }
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./features/debt-management/pages/dashboard/dashboard.component').then(m => m.DashboardComponent)
       },
-      { 
-        path: 'debt-titles', 
-        component: DebtTitleList,
-        data: { animation: 'DebtTitleList' }
+      {
+        path: 'debts',
+        loadChildren: () => import('./features/debt-management/debt-management.routes').then(m => m.debtManagementRoutes)
       },
-      { 
-        path: 'debt-titles/new', 
-        component: DebtTitleFormComponent,
-        data: { animation: 'DebtTitleForm' }
-      },
-      { 
-        path: 'debt-titles/:id/edit', 
-        component: DebtTitleFormComponent,
-        data: { animation: 'DebtTitleForm' }
-      },
-      { 
-        path: 'debt-titles/:id', 
-        component: DebtTitleDetail,
-        data: { animation: 'DebtTitleDetail' }
-      },
+
     ]
   },
-  { 
-    path: '404', 
-    component: NotFound,
-    data: { animation: 'NotFound' }
-  },
-  { path: '**', redirectTo: '/404' }
+  {
+    path: '**',
+    loadComponent: () => import('./shared/components/not-found/not-found.component').then(m => m.NotFoundComponent)
+  }
 ];

@@ -78,5 +78,5 @@ public class DebtTitleResponse
     /// <summary>
     /// Lista de parcelas
     /// </summary>
-    public List<InstallmentResponse> Installments { get; set; } = new();
+    public List<InstallmentResponse> Installments { get; set; } = [];
 }

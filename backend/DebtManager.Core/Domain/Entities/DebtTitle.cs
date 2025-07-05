@@ -15,9 +15,6 @@ public class DebtTitle
     public DateTime CreatedAt { get; private set; }
     public List<Installment> Installments { get; private set; } = [];
 
-    // Propriedades removidas - agora usando OwnsOne para mapear o Value Object Debtor
-
-    // Construtor privado para EF Core
     private DebtTitle() { }
 
     public DebtTitle(
@@ -39,8 +36,6 @@ public class DebtTitle
 
         ValidateEntity();
     }
-
-    // Construtor alternativo para compatibilidade
     public DebtTitle(
         string titleNumber,
         decimal originalValue,
@@ -65,7 +60,7 @@ public class DebtTitle
     public decimal CalculateUpdatedValue()
     {
         // Se há parcelas, calcula baseado nas parcelas individuais
-        if (Installments.Any())
+        if(Installments.Count!=0)
         {
             var totalInterest = 0m;
             var totalPenalty = 0m;
@@ -120,13 +115,13 @@ public class DebtTitle
         PenaltyRate = newPenaltyRate;
     }
 
-    public void UpdateDebtor(string debtorName, string debtorDocument)
+    public void UpdateDebtor(string debtorName, string? debtorDocument)
     {
         if (string.IsNullOrWhiteSpace(debtorName))
             throw new ArgumentException("O nome do devedor é obrigatório.");
         
         if (string.IsNullOrWhiteSpace(debtorDocument))
-            throw new ArgumentException("O documento do devedor é obrigatório.");
+            debtorDocument = Debtor?.Document?.Value ?? string.Empty;
         
         Debtor = new Debtor(debtorName, debtorDocument);
     }
@@ -152,7 +147,7 @@ public class DebtTitle
         DueDate = dueDate;
     }
 
-    public void UpdateComplete(string titleNumber, decimal originalValue, DateTime dueDate, decimal interestRatePerDay, decimal penaltyRate, string debtorName, string debtorDocument)
+    public void UpdateComplete(string titleNumber, decimal originalValue, DateTime dueDate, decimal interestRatePerDay, decimal penaltyRate, string debtorName, string? debtorDocument)
     {
         UpdateTitleNumber(titleNumber);
         UpdateOriginalValue(originalValue);

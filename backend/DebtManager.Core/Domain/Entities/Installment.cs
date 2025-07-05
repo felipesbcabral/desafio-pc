@@ -68,7 +68,8 @@ public class Installment
         if (daysOverdue <= 0)
             return 0;
 
-        // Fórmula correta: (Taxa Juros / 30) × Dias Atraso × Valor da Parcela
+        // Fórmula correta: (Taxa Juros Mensal / 30) × Dias Atraso × Valor da Parcela
+        // monthlyInterestRate já vem como taxa mensal (ex: 0.01 para 1%)
         return (monthlyInterestRate / 30) * daysOverdue * Value;
     }
 

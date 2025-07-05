@@ -35,13 +35,13 @@ namespace DebtManager.Core.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("InterestRatePerDay")
-                        .HasColumnType("decimal(5,4)");
+                        .HasColumnType("decimal(10,6)");
 
                     b.Property<decimal>("OriginalValue")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("PenaltyRate")
-                        .HasColumnType("decimal(5,4)");
+                        .HasColumnType("decimal(10,6)");
 
                     b.Property<string>("TitleNumber")
                         .IsRequired()

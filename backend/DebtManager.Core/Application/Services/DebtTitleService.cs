@@ -2,125 +2,104 @@ using DebtManager.Core.Domain.Entities;
 using DebtManager.Core.Domain.Repositories;
 using DebtManager.Core.Application.DTOs;
 using DebtManager.Core.Domain.ValueObjects;
+using DebtManager.Core.Application.Interfaces;
+using FluentValidation;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DebtManager.Core.Application.Services;
 
-public class DebtTitleService(IDebtTitleRepository repository)
+public class DebtTitleService : IDebtTitleService
 {
-    private readonly IDebtTitleRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+    private readonly IDebtTitleRepository _repository;
+    private readonly IValidator<CreateDebtTitleRequest> _createValidator;
+    private readonly IValidator<UpdateDebtTitleRequest> _updateValidator;
+    private readonly IRequestMappingService _requestMappingService;
 
-    public async Task<DebtTitle> CreateDebtTitleAsync(
-        string titleNumber,
-        decimal originalValue,
-        DateTime dueDate,
-        decimal interestRatePerDay,
-        decimal penaltyRate,
-        string debtorName,
-        string debtorDocument)
+    public DebtTitleService(
+        IDebtTitleRepository repository,
+        IValidator<CreateDebtTitleRequest> createValidator,
+        IValidator<UpdateDebtTitleRequest> updateValidator,
+        IRequestMappingService requestMappingService)
     {
-        var debtor = new Debtor(debtorName, debtorDocument);
-        var debtTitle = new DebtTitle(titleNumber, originalValue, dueDate, interestRatePerDay, penaltyRate, debtor);
-        
-        return await _repository.AddAsync(debtTitle);
+        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        _createValidator = createValidator;
+        _updateValidator = updateValidator;
+        _requestMappingService = requestMappingService;
     }
 
-    public async Task<DebtTitle> CreateDebtTitleWithInstallmentsAsync(
-        decimal originalValue,
-        DateTime dueDate,
-        decimal interestRatePerDay,
-        string debtorName,
-        string debtorDocument,
-        int numberOfInstallments)
-    {
-        var debtTitle = await CreateDebtTitleAsync(
-            "TEMP-" + Guid.NewGuid().ToString()[..8], originalValue, dueDate, interestRatePerDay, 2.0m, debtorName, debtorDocument);
+    public async Task<DebtTitle> GetByIdAsync(Guid id) 
+        => await _repository.GetByIdAsync(id);
 
-        if (numberOfInstallments > 1)
-        {
-            var installmentValue = originalValue / numberOfInstallments;
-            var currentDueDate = dueDate;
-
-            for (int i = 1; i <= numberOfInstallments; i++)
-            {
-                debtTitle.AddInstallment(i, installmentValue, currentDueDate);
-                currentDueDate = currentDueDate.AddMonths(1); // Parcelas mensais
-            }
-        }
-
-        await _repository.UpdateAsync(debtTitle);
-        return debtTitle;
-    }
-
-    public async Task<DebtTitle> CreateDebtTitleWithCustomInstallmentsAsync(
-        string titleNumber,
-        decimal interestRatePerDay,
-        decimal penaltyRate,
-        string debtorName,
-        string debtorDocument,
-        List<(int number, decimal value, DateTime dueDate)> installments,
-        decimal? originalValue = null)
-    {
-        // Calcula o valor original se não fornecido
-        var calculatedOriginalValue = originalValue ?? installments.Sum(i => i.value);
-        
-        // Usa a data de vencimento da primeira parcela como data base
-        var baseDueDate = installments.OrderBy(i => i.number).First().dueDate;
-        
-        var debtor = new Debtor(debtorName, debtorDocument);
-        var debtTitle = new DebtTitle(titleNumber, calculatedOriginalValue, baseDueDate, interestRatePerDay, penaltyRate, debtor);
-        
-        // Adiciona as parcelas customizadas
-        foreach (var (number, value, dueDate) in installments)
-        {
-            debtTitle.AddInstallment(number, value, dueDate);
-        }
-        
-        return await _repository.AddAsync(debtTitle);
-    }
-
-    public async Task<IEnumerable<DebtTitle>> GetAllDebtTitlesAsync()
+    public async Task<IEnumerable<DebtTitle>> GetAllAsync()
     {
         return await _repository.GetAllAsync();
     }
 
-    public async Task<DebtTitle?> GetByIdAsync(Guid id)
+    public async Task<IEnumerable<DebtTitle>> GetByDebtorDocumentAsync(string debtorDocument)
     {
-        return await _repository.GetByIdAsync(id);
-    }
-
-    public async Task<IEnumerable<DebtTitle>> GetByDebtorDocumentAsync(string document)
-    {
-        if (string.IsNullOrWhiteSpace(document))
+        if (string.IsNullOrWhiteSpace(debtorDocument))
             throw new ArgumentException("Documento é obrigatório.");
 
-        return await _repository.GetByDebtorDocumentAsync(document);
+        return await _repository.GetByDebtorDocumentAsync(debtorDocument);
     }
 
-    public async Task<IEnumerable<DebtTitle>> GetOverdueDebtTitlesAsync()
+    public async Task<DebtTitle> CreateDebtTitleAsync(CreateDebtTitleDto dto)
     {
-        return await _repository.GetOverdueAsync();
+        var debtor = new Debtor(dto.DebtorName, dto.DebtorDocument);
+        var originalValue = dto.OriginalValue ?? dto.Installments.Sum(i => i.Value);
+        var dueDate = dto.Installments.FirstOrDefault()?.DueDate ?? DateTime.Now.AddDays(30);
+        
+        var debtTitle = new DebtTitle(
+            dto.TitleNumber,
+            originalValue,
+            dueDate,
+            dto.InterestRatePerDay,
+            dto.PenaltyRate,
+            debtor);
+
+        foreach (var installmentDto in dto.Installments)
+        {
+            debtTitle.AddInstallment(
+                installmentDto.InstallmentNumber,
+                installmentDto.Value,
+                installmentDto.DueDate);
+        }
+
+        await _repository.AddAsync(debtTitle);
+        return debtTitle;
     }
 
-    public async Task<bool> DeleteDebtTitleAsync(Guid id)
+    public async Task<DebtTitle> CreateFromRequestAsync(CreateDebtTitleRequest request)
     {
-        var exists = await _repository.ExistsAsync(id);
-        if (!exists)
-            return false;
+        var validationResult = await _createValidator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+        {
+            throw new ValidationException(validationResult.Errors);
+        }
 
-        await _repository.DeleteAsync(id);
-        return true;
+        var dto = _requestMappingService.MapToCreateDto(request);
+        return await CreateDebtTitleAsync(dto);
     }
 
-
-
-    public async Task<DebtTitle?> UpdateDebtTitleAsync(Guid id, UpdateDebtTitleDto updateDto)
+    public async Task<DebtTitle> UpdateFromRequestAsync(Guid id, UpdateDebtTitleRequest request)
     {
-        var debtTitle = await _repository.GetByIdAsync(id);
-        if (debtTitle == null)
-            return null;
+        var validationResult = await _updateValidator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+        {
+            throw new ValidationException(validationResult.Errors);
+        }
+
+        var dto = _requestMappingService.MapToUpdateDto(request);
+        return await UpdateDebtTitleAsync(id, dto);
+    }
+
+    public async Task<DebtTitle> UpdateDebtTitleAsync(Guid id, UpdateDebtTitleDto updateDto)
+    {
+        var debtTitle = await _repository.GetByIdAsync(id)??
+            throw new ArgumentException($"DebtTitle with id {id} not found");
 
         debtTitle.UpdateComplete(
             updateDto.TitleNumber, 
@@ -136,21 +115,22 @@ public class DebtTitleService(IDebtTitleRepository repository)
         return debtTitle;
     }
 
-    public async Task<decimal> CalculateTotalDebtAsync(string debtorDocument)
-    {
-        var debtTitles = await GetByDebtorDocumentAsync(debtorDocument);
-        
-        decimal total = 0;
-        foreach (var debtTitle in debtTitles)
-        {
-            total += debtTitle.CalculateUpdatedValue();
-        }
 
-        return total;
+
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        var debtTitle = await _repository.GetByIdAsync(id);
+
+        if (debtTitle == null)
+            return false;
+
+        await _repository.DeleteAsync(debtTitle.Id);
+        return true;
     }
 
-    public async Task<int> GetTotalCountAsync()
+    public async Task<decimal> GetTotalDebtValueAsync()
     {
-        return await _repository.CountAsync();
+        var allDebtTitles = await GetAllAsync();
+        return allDebtTitles.Sum(dt => dt.CalculateUpdatedValue());
     }
 }

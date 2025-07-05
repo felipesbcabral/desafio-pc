@@ -11,5 +11,5 @@ public class UpdateDebtTitleDto
     public decimal InterestRatePerDay { get; set; }
     public decimal PenaltyRate { get; set; }
     public string DebtorName { get; set; } = null!;
-    public string DebtorDocument { get; set; } = null!;
+    public string? DebtorDocument { get; set; }
 }

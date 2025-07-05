@@ -1,16 +1,19 @@
 using DebtManager.Core.Infrastructure.Persistence;
 using DebtManager.Core.Domain.Repositories;
-using DebtManager.Core.Infrastructure.Repositories;
 using DebtManager.Core.Application.Services;
+using DebtManager.Core.Application.Interfaces;
+using DebtManager.Api.Validators;
+using DebtManager.Api.Services;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Configuração do CORS
+builder.Services.AddValidatorsFromAssemblyContaining<CreateDebtTitleRequestValidator>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp", policy =>
@@ -21,15 +24,13 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configuração do Entity Framework
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Injeção de dependência
 builder.Services.AddScoped<IDebtTitleRepository, DebtTitleRepository>();
-builder.Services.AddScoped<IInstallmentRepository, InstallmentRepository>();
-builder.Services.AddScoped<DebtTitleService>();
-builder.Services.AddScoped<InstallmentService>();
+builder.Services.AddScoped<IDebtTitleService, DebtTitleService>();
+builder.Services.AddScoped<MappingService>();
+builder.Services.AddScoped<IRequestMappingService, RequestMappingService>();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
@@ -44,7 +45,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
     
-    // Configuração para incluir comentários XML
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
@@ -55,7 +55,6 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -72,7 +71,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-// Usar CORS
 app.UseCors("AllowAngularApp");
 
 app.UseAuthorization();
@@ -82,7 +80,5 @@ app.MapControllers();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+// Torna a classe Program pública para testes de integração
+public partial class Program { }

@@ -9,8 +9,8 @@ COPY DebtManager-Challenge.sln ./
 COPY DebtManager.Api/DebtManager.Api.csproj DebtManager.Api/
 COPY DebtManager.Core/DebtManager.Core.csproj DebtManager.Core/
 
-# Restore dependencies
-RUN dotnet restore
+# Restore dependencies for production projects only
+RUN dotnet restore DebtManager.Api/DebtManager.Api.csproj
 
 # Copy all source code
 COPY . .

@@ -1,0 +1,168 @@
+import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+
+export class CustomValidators {
+  /**
+   * Validador para CPF ou CNPJ
+   */
+  static cpfOrCnpj(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (!value) return null;
+    
+    const cleanValue = value.replace(/\D/g, '');
+    
+    if (cleanValue.length === 11) {
+      return CustomValidators.validateCPF(cleanValue) ? null : { cpfOrCnpj: { message: 'CPF inválido' } };
+    } else if (cleanValue.length === 14) {
+      return CustomValidators.validateCNPJ(cleanValue) ? null : { cpfOrCnpj: { message: 'CNPJ inválido' } };
+    }
+    
+    return { cpfOrCnpj: { message: 'CPF ou CNPJ inválido' } };
+  }
+
+  /**
+   * Alias para cpfOrCnpj (compatibilidade)
+   */
+  static cpfCnpj = CustomValidators.cpfOrCnpj;
+
+  /**
+   * Validador para valores positivos
+   */
+  static positiveValue(control: AbstractControl): ValidationErrors | null {
+    const value = parseFloat(control.value);
+    if (isNaN(value) || value <= 0) {
+      return { positiveValue: { message: 'O valor deve ser maior que zero' } };
+    }
+    return null;
+  }
+
+  /**
+   * Validador para percentuais (apenas valores positivos)
+   */
+  static percentage(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (!value && value !== 0) return null;
+    
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) {
+      return { percentage: { message: 'Deve ser um número válido' } };
+    }
+    
+    if (numValue < 0) {
+      return { percentage: { message: 'Deve ser um valor positivo' } };
+    }
+    
+    return null;
+  }
+
+  /**
+   * Validador para formato de data DD/MM/AAAA
+   */
+  static dateFormat(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (!value) {
+      return null;
+    }
+
+    const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    const match = value.match(dateRegex);
+
+    if (!match) {
+      return { dateFormat: { message: 'Data deve estar no formato DD/MM/AAAA' } };
+    }
+
+    const [, day, month, year] = match;
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
+    // Verifica se a data é válida
+    if (
+      date.getDate() !== parseInt(day) ||
+      date.getMonth() !== parseInt(month) - 1 ||
+      date.getFullYear() !== parseInt(year)
+    ) {
+      return { dateFormat: { message: 'Data inválida' } };
+    }
+
+    return null;
+  }
+
+  /**
+   * Validador para data futura
+   */
+  static futureDate(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (!value) {
+      return null;
+    }
+
+    const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    const match = value.match(dateRegex);
+
+    if (!match) {
+      return null; // Deixa a validação de formato para outro validador
+    }
+
+    const [, day, month, year] = match;
+    const inputDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (inputDate <= today) {
+      return { futureDate: { message: 'A data deve ser futura' } };
+    }
+
+    return null;
+  }
+
+  /**
+   * Valida CPF
+   */
+  private static validateCPF(cpf: string): boolean {
+    if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) {
+      return false;
+    }
+
+    let sum = 0;
+    for (let i = 0; i < 9; i++) {
+      sum += parseInt(cpf.charAt(i)) * (10 - i);
+    }
+    let remainder = (sum * 10) % 11;
+    if (remainder === 10 || remainder === 11) remainder = 0;
+    if (remainder !== parseInt(cpf.charAt(9))) return false;
+
+    sum = 0;
+    for (let i = 0; i < 10; i++) {
+      sum += parseInt(cpf.charAt(i)) * (11 - i);
+    }
+    remainder = (sum * 10) % 11;
+    if (remainder === 10 || remainder === 11) remainder = 0;
+    return remainder === parseInt(cpf.charAt(10));
+  }
+
+  /**
+   * Valida CNPJ
+   */
+  private static validateCNPJ(cnpj: string): boolean {
+    if (cnpj.length !== 14 || /^(\d)\1{13}$/.test(cnpj)) {
+      return false;
+    }
+
+    const weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    const weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+
+    let sum = 0;
+    for (let i = 0; i < 12; i++) {
+      sum += parseInt(cnpj.charAt(i)) * weights1[i];
+    }
+    let remainder = sum % 11;
+    const digit1 = remainder < 2 ? 0 : 11 - remainder;
+    if (digit1 !== parseInt(cnpj.charAt(12))) return false;
+
+    sum = 0;
+    for (let i = 0; i < 13; i++) {
+      sum += parseInt(cnpj.charAt(i)) * weights2[i];
+    }
+    remainder = sum % 11;
+    const digit2 = remainder < 2 ? 0 : 11 - remainder;
+    return digit2 === parseInt(cnpj.charAt(13));
+  }
+}

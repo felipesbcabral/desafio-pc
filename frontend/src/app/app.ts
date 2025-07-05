@@ -1,20 +1,13 @@
 import { Component } from '@angular/core';
-import { RouterOutlet, ChildrenOutletContexts } from '@angular/router';
-import { routeAnimations } from './shared/animations/animations';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   imports: [RouterOutlet],
-  animations: [routeAnimations],
-  templateUrl: './app.html',
+  template: '<router-outlet></router-outlet>',
   styleUrl: './app.scss'
 })
 export class App {
-  protected title = 'frontend';
-
-  constructor(private contexts: ChildrenOutletContexts) {}
-
-  getRouteAnimationData() {
-    return this.contexts.getContext('primary')?.route?.snapshot?.data?.['animation'];
-  }
+  title = 'DebtManager - Paschoalotto';
 }

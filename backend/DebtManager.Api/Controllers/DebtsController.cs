@@ -1,296 +1,87 @@
 using Microsoft.AspNetCore.Mvc;
+using DebtManager.Core.Application.Interfaces;
 using DebtManager.Core.Application.Services;
-using DebtManager.Core.Domain.Entities;
+using DebtManager.Core.Domain.Exceptions;
 using DebtManager.Core.Application.DTOs;
+using DebtManager.Api.Services;
 using DebtManager.Api.DTOs;
-using System.ComponentModel.DataAnnotations;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DebtManager.Api.Controllers;
 
-/// <summary>
-/// Controller para gestão de títulos de dívida
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
-[Produces("application/json")]
 public class DebtsController : ControllerBase
 {
-    private readonly ILogger<DebtsController> _logger;
-    private readonly DebtTitleService _debtTitleService;
+    private readonly IDebtTitleService _debtTitleService;
+    private readonly MappingService _mappingService;
 
-    public DebtsController(ILogger<DebtsController> logger, DebtTitleService debtTitleService)
+    public DebtsController(
+        IDebtTitleService debtTitleService,
+        MappingService mappingService)
     {
-        _logger = logger;
-        _debtTitleService = debtTitleService;
+        _debtTitleService = debtTitleService ?? throw new ArgumentNullException(nameof(debtTitleService));
+        _mappingService = mappingService ?? throw new ArgumentNullException(nameof(mappingService));
     }
 
-    /// <summary>
-    /// Obtém todos os títulos de dívida
-    /// </summary>
-    /// <returns>Lista de títulos de dívida</returns>
-    /// <response code="200">Retorna a lista de títulos</response>
-    /// <response code="500">Erro interno do servidor</response>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<DebtTitleResponse>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<DebtTitleResponse>>> GetAllDebts()
     {
-        try
-        {
-            var debtTitles = await _debtTitleService.GetAllDebtTitlesAsync();
-            var response = debtTitles.Select(MapToResponse);
-
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao buscar títulos de dívida");
-            return StatusCode(500, "Erro interno do servidor");
-        }
+        var debtTitles = await _debtTitleService.GetAllAsync();
+        var response = debtTitles.Select(_mappingService.MapToResponse);
+        return Ok(response);
     }
 
-    /// <summary>
-    /// Obtém um título de dívida específico
-    /// </summary>
-    /// <param name="id">ID do título de dívida</param>
-    /// <returns>Título de dívida</returns>
-    /// <response code="200">Retorna o título encontrado</response>
-    /// <response code="404">Título não encontrado</response>
-    /// <response code="500">Erro interno do servidor</response>
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(DebtTitleResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<DebtTitleResponse>> GetDebtById(Guid id)
     {
-        try
-        {
-            if (id == Guid.Empty)
-                return BadRequest("ID inválido");
+        if (id == Guid.Empty)
+            return BadRequest("ID inválido");
 
-            var debtTitle = await _debtTitleService.GetByIdAsync(id);
-            if (debtTitle == null)
-                return NotFound($"Título de dívida com ID {id} não encontrado");
+        var debtTitle = await _debtTitleService.GetByIdAsync(id);
+        if (debtTitle == null)
+            return NotFound();
 
-            var response = MapToResponse(debtTitle);
-
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao buscar título de dívida {Id}", id);
-            return StatusCode(500, "Erro interno do servidor");
-        }
+        var response = _mappingService.MapToResponse(debtTitle);
+        return Ok(response);
     }
 
-    /// <summary>
-    /// Cria um novo título de dívida
-    /// </summary>
-    /// <param name="request">Dados do título a ser criado</param>
-    /// <returns>Título criado</returns>
-    /// <response code="201">Título criado com sucesso</response>
-    /// <response code="400">Dados inválidos</response>
-    /// <response code="500">Erro interno do servidor</response>
     [HttpPost]
-    [ProducesResponseType(typeof(DebtTitleResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<DebtTitleResponse>> CreateDebt([FromBody] CreateDebtTitleRequest request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            DebtTitle createdDebt;
-            
-            // Se há parcelas customizadas, usa o método específico
-            if (request.Installments.Any())
-            {
-                var installments = request.Installments.Select(i => (i.InstallmentNumber, i.Value, i.DueDate)).ToList();
-                createdDebt = await _debtTitleService.CreateDebtTitleWithCustomInstallmentsAsync(
-                    request.TitleNumber,
-                    request.InterestRatePerDay,
-                    request.PenaltyRate,
-                    request.DebtorName,
-                    request.DebtorDocument,
-                    installments,
-                    request.OriginalValue);
-            }
-            else
-            {
-                // Fallback para o método original (compatibilidade)
-                if (!request.OriginalValue.HasValue)
-                    return BadRequest("Valor original é obrigatório quando não há parcelas especificadas.");
-                    
-                createdDebt = await _debtTitleService.CreateDebtTitleAsync(
-                    request.TitleNumber,
-                    request.OriginalValue.Value,
-                    request.DueDate,
-                    request.InterestRatePerDay,
-                    request.PenaltyRate,
-                    request.DebtorName,
-                    request.DebtorDocument);
-            }
-
-            var response = MapToResponse(createdDebt);
-
-            return CreatedAtAction(nameof(GetDebtById), new { id = response.Id }, response);
-        }
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "Dados inválidos ao criar título de dívida: {Message}", ex.Message);
-            return BadRequest(new { error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro interno ao criar título de dívida");
-            return StatusCode(500, new { error = "Erro interno do servidor" });
-        }
+        var debtTitle = await _debtTitleService.CreateFromRequestAsync(request);
+        var response = _mappingService.MapToResponse(debtTitle);
+        return CreatedAtAction(nameof(GetDebtById), new { id = debtTitle.Id }, response);
     }
 
-    private DebtTitleResponse MapToResponse(DebtTitle debtTitle)
-    {
-        // Usando a taxa de juros mensal (InterestRatePerDay * 30) para o cálculo correto
-        var monthlyInterestRate = debtTitle.InterestRatePerDay * 30;
-        
-        var installments = debtTitle.Installments.Select(i => new InstallmentResponse
-        {
-            Id = i.Id,
-            InstallmentNumber = i.InstallmentNumber,
-            Value = i.Value,
-            DueDate = i.DueDate,
-            IsPaid = i.IsPaid,
-            PaidAt = i.PaidAt,
-            IsOverdue = i.IsOverdue(),
-            DaysOverdue = i.IsOverdue() ? (DateTime.Now.Date - i.DueDate.Date).Days : 0,
-            InterestAmount = i.CalculateInterest(monthlyInterestRate),
-            UpdatedValue = i.CalculateUpdatedValue(monthlyInterestRate, debtTitle.PenaltyRate)
-        }).ToList();
-
-        // Calcula dias em atraso baseado na data de vencimento principal do título
-        var titleDaysOverdue = DateTime.Now.Date > debtTitle.DueDate.Date ? 
-            (DateTime.Now.Date - debtTitle.DueDate.Date).Days : 0;
-        
-        // Usa o maior valor entre o atraso do título principal e das parcelas
-        var installmentMaxDaysOverdue = installments.Any() ? installments.Max(i => i.DaysOverdue) : 0;
-        var maxDaysOverdue = Math.Max(titleDaysOverdue, installmentMaxDaysOverdue);
-
-        // Sempre usa o valor original da entidade, não a soma das parcelas
-        var originalValue = debtTitle.OriginalValue;
-
-        return new DebtTitleResponse
-        {
-            Id = debtTitle.Id,
-            TitleNumber = debtTitle.TitleNumber,
-            OriginalValue = originalValue,
-            UpdatedValue = debtTitle.CalculateUpdatedValue(),
-            DueDate = debtTitle.DueDate,
-            InterestRatePerDay = debtTitle.InterestRatePerDay,
-            PenaltyRate = debtTitle.PenaltyRate,
-            DebtorName = debtTitle.Debtor.Name,
-            DebtorDocument = debtTitle.Debtor.Document.Value,
-            DebtorDocumentType = debtTitle.Debtor.Document.Type.ToString(),
-            CreatedAt = debtTitle.CreatedAt,
-            InstallmentCount = installments.Count,
-            DaysOverdue = maxDaysOverdue,
-            Installments = installments
-        };
-    }
-
-    /// <summary>
-    /// Atualiza um título de dívida
-    /// </summary>
-    /// <param name="id">ID do título de dívida</param>
-    /// <param name="request">Dados atualizados do título</param>
-    /// <returns>Título atualizado</returns>
-    /// <response code="200">Título atualizado com sucesso</response>
-    /// <response code="400">Dados inválidos</response>
-    /// <response code="404">Título não encontrado</response>
-    /// <response code="500">Erro interno do servidor</response>
     [HttpPut("{id:guid}")]
-    [ProducesResponseType(typeof(DebtTitleResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<DebtTitleResponse>> UpdateDebt(Guid id, [FromBody] UpdateDebtTitleRequest request)
     {
-        try
-        {
-            if (id == Guid.Empty)
-                return BadRequest("ID inválido");
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            // Verifica se o título existe
-            var existingDebt = await _debtTitleService.GetByIdAsync(id);
-            if (existingDebt == null)
-                return NotFound($"Título de dívida com ID {id} não encontrado");
-
-            // Converte o request para DTO e atualiza o título completo
-            var updateDto = new UpdateDebtTitleDto
-            {
-                TitleNumber = request.TitleNumber,
-                OriginalValue = request.OriginalValue,
-                DueDate = request.DueDate,
-                InterestRatePerDay = request.InterestRatePerDay,
-                PenaltyRate = request.PenaltyRate,
-                DebtorName = request.DebtorName,
-                DebtorDocument = request.DebtorDocument
-            };
-            
-            var updatedDebt = await _debtTitleService.UpdateDebtTitleAsync(id, updateDto);
-            
-            if (updatedDebt == null)
-                return NotFound($"Título de dívida com ID {id} não encontrado");
-
-            var response = MapToResponse(updatedDebt);
-            return Ok(response);
-        }
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "Dados inválidos ao atualizar título de dívida {Id}: {Message}", id, ex.Message);
-            return BadRequest(new { error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro interno ao atualizar título de dívida {Id}", id);
-            return StatusCode(500, new { error = "Erro interno do servidor" });
-        }
+        var debtTitle = await _debtTitleService.UpdateFromRequestAsync(id, request);
+        var response = _mappingService.MapToResponse(debtTitle);
+        return Ok(response);
     }
 
-    /// <summary>
-    /// Remove um título de dívida
-    /// </summary>
-    /// <param name="id">ID do título de dívida</param>
-    /// <returns>Confirmação da remoção</returns>
-    /// <response code="204">Título removido com sucesso</response>
-    /// <response code="400">ID inválido</response>
-    /// <response code="404">Título não encontrado</response>
-    /// <response code="500">Erro interno do servidor</response>
     [HttpDelete("{id:guid}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> DeleteDebt(Guid id)
     {
-        try
-        {
-            if (id == Guid.Empty)
-                return BadRequest("ID inválido");
+        if (id == Guid.Empty)
+            return BadRequest("ID inválido");
 
-            var deleted = await _debtTitleService.DeleteDebtTitleAsync(id);
-            if (!deleted)
-                return NotFound($"Título de dívida com ID {id} não encontrado");
+        var deleted = await _debtTitleService.DeleteAsync(id);
+        if (!deleted)
+            return NotFound();
 
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro interno ao remover título de dívida {Id}", id);
-            return StatusCode(500, new { error = "Erro interno do servidor" });
-        }
+        return NoContent();
+    }
+
+    [HttpGet("by-debtor")]
+    public async Task<ActionResult<IEnumerable<DebtTitleResponse>>> GetDebtsByDebtorDocument([FromQuery] string document)
+    {
+        var debtTitles = await _debtTitleService.GetByDebtorDocumentAsync(document);
+        var response = debtTitles.Select(_mappingService.MapToResponse);
+        return Ok(response);
     }
 }

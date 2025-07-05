@@ -47,11 +47,11 @@ public class AppDbContext : DbContext
                 .IsRequired();
             
             entity.Property(e => e.InterestRatePerDay)
-                .HasColumnType("decimal(5,4)")
+                .HasColumnType("decimal(10,6)")
                 .IsRequired();
             
             entity.Property(e => e.PenaltyRate)
-                .HasColumnType("decimal(5,4)")
+                .HasColumnType("decimal(10,6)")
                 .IsRequired();
             
             entity.Property(e => e.CreatedAt)

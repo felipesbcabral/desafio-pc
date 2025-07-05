@@ -358,25 +358,7 @@ export class DebtService {
   /**
    * Calcula valores de juros e multa para uma parcela
    */
-  calculateInstallmentValues(originalValue: number, dueDate: Date, interestRate: number, fineRate: number): Observable<any> {
-    const params = {
-      originalValue,
-      dueDate: dueDate.toISOString(),
-      interestRate,
-      fineRate
-    };
-
-    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/calculate`, params)
-      .pipe(
-        map(response => {
-          if (response.success && response.data) {
-            return response.data;
-          }
-          throw new Error(response.message || 'Erro ao calcular valores');
-        }),
-        catchError(error => throwError(() => error))
-      );
-  }
+  // Método removido - cálculos devem ser feitos exclusivamente no backend
 
   /**
    * Exporta relatório de dívidas

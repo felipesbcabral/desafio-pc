@@ -63,8 +63,8 @@ public class DebtTitle
         if(Installments.Count!=0)
         {
             var totalInterest = 0m;
-            var totalPenalty = 0m;
             var totalOriginalValue = 0m;
+            var hasOverdueInstallments = false;
 
             foreach (var installment in Installments)
             {
@@ -73,12 +73,15 @@ public class DebtTitle
                 var monthlyInterestRate = InterestRatePerDay * 30;
                 totalInterest += installment.CalculateInterest(monthlyInterestRate);
                 
-                // Aplica multa apenas se a parcela estiver em atraso
+                // Verifica se há pelo menos uma parcela em atraso
                 if (installment.IsOverdue())
                 {
-                    totalPenalty += installment.Value * (PenaltyRate / 100);
+                    hasOverdueInstallments = true;
                 }
             }
+
+            // Aplica multa uma única vez sobre o valor original total se houver parcelas em atraso
+            var totalPenalty = hasOverdueInstallments ? totalOriginalValue * (PenaltyRate / 100) : 0m;
 
             return totalOriginalValue + totalInterest + totalPenalty;
         }

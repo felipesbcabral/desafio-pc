@@ -75,8 +75,8 @@ export class DebtMapperService {
       paymentDate: inst.paidAt ? new Date(inst.paidAt) : undefined,
       status: inst.isPaid ? InstallmentStatus.PAID : 
               inst.isOverdue ? InstallmentStatus.OVERDUE : InstallmentStatus.PENDING,
-      interestRate: response.interestRatePerDay * 100, // Converter de decimal para percentual
-      fineRate: response.penaltyRate * 100, // Converter de decimal para percentual
+      interestRate: response.interestRatePerDay,
+      fineRate: response.penaltyRate,
       interestAmount: inst.interestAmount,
       fineAmount: 0, // Calcular se necessário
       totalAmount: inst.updatedValue,
@@ -105,8 +105,8 @@ export class DebtMapperService {
       totalInstallments: response.installmentCount,
       paidInstallments,
       status,
-      interestRate: response.interestRatePerDay * 100, // Converter de decimal para percentual
-      fineRate: response.penaltyRate * 100, // Converter de decimal para percentual
+      interestRate: response.interestRatePerDay,
+      fineRate: response.penaltyRate,
       createdAt: new Date(response.createdAt),
       installments
     };

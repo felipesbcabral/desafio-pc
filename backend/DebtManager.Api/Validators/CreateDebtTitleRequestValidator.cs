@@ -1,5 +1,6 @@
 using FluentValidation;
 using DebtManager.Core.Application.DTOs;
+using DebtManager.Core.Domain.ValueObjects;
 
 namespace DebtManager.Api.Validators;
 
@@ -45,11 +46,15 @@ public class CreateDebtTitleRequestValidator : AbstractValidator<CreateDebtTitle
         if (string.IsNullOrWhiteSpace(document))
             return false;
 
-        // Remove caracteres não numéricos
-        var cleanDocument = new string(document.Where(char.IsDigit).ToArray());
-
-        // Valida CPF (11 dígitos) ou CNPJ (14 dígitos)
-        return cleanDocument.Length == 11 || cleanDocument.Length == 14;
+        try
+        {
+            _ = new Document(document);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
 

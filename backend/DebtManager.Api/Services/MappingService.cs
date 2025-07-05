@@ -39,7 +39,7 @@ public class MappingService
             InterestRatePerDay = debtTitle.InterestRatePerDay,
             PenaltyRate = debtTitle.PenaltyRate,
             DebtorName = debtTitle.Debtor.Name,
-            DebtorDocument = debtTitle.Debtor.Document.Value,
+            DebtorDocument = debtTitle.Debtor.Document.FormattedValue,
             DebtorDocumentType = debtTitle.Debtor.Document.Type.ToString(),
             CreatedAt = debtTitle.CreatedAt,
             InstallmentCount = installments.Count,

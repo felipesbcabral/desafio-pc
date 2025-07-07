@@ -18,8 +18,8 @@ public class DebtsController : ControllerBase
         IDebtTitleService debtTitleService,
         MappingService mappingService)
     {
-        _debtTitleService = debtTitleService ?? throw new ArgumentNullException(nameof(debtTitleService));
-        _mappingService = mappingService ?? throw new ArgumentNullException(nameof(mappingService));
+        _debtTitleService = debtTitleService;
+        _mappingService = mappingService;
     }
 
     [HttpGet]

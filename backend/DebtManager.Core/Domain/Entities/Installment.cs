@@ -82,13 +82,6 @@ public class Installment
 
     private void ValidateInstallment()
     {
-        if (InstallmentNumber <= 0)
-            throw new ArgumentException("O número da parcela deve ser maior que zero.");
-
-        if (Value <= 0)
-            throw new ArgumentException("O valor da parcela deve ser maior que zero.");
-
-        if (DebtTitleId == Guid.Empty)
-            throw new ArgumentException("O ID do título de dívida é obrigatório.");
+        // Validações removidas - agora são feitas pelo FluentValidation
     }
 }

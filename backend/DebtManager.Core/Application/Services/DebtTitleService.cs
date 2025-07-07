@@ -25,10 +25,10 @@ public class DebtTitleService : IDebtTitleService
         IValidator<UpdateDebtTitleRequest> updateValidator,
         IRequestMappingService requestMappingService)
     {
-        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-        _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
-        _updateValidator = updateValidator ?? throw new ArgumentNullException(nameof(updateValidator));
-        _requestMappingService = requestMappingService ?? throw new ArgumentNullException(nameof(requestMappingService));
+        _repository = repository;
+        _createValidator = createValidator;
+        _updateValidator = updateValidator;
+        _requestMappingService = requestMappingService;
     }
 
     public async Task<Result<DebtTitle>> GetByIdAsync(Guid id)

@@ -26,15 +26,13 @@ public class DebtTitle
         Debtor debtor)
     {
         Id = Guid.NewGuid();
-        TitleNumber = titleNumber ?? throw new ArgumentNullException(nameof(titleNumber));
+        TitleNumber = titleNumber;
         OriginalValue = originalValue;
         DueDate = dueDate;
         InterestRatePerDay = interestRatePerDay;
         PenaltyRate = penaltyRate;
-        Debtor = debtor ?? throw new ArgumentNullException(nameof(debtor));
+        Debtor = debtor;
         CreatedAt = DateTime.UtcNow;
-
-        ValidateEntity();
     }
     public DebtTitle(
         string titleNumber,
@@ -46,15 +44,13 @@ public class DebtTitle
         string debtorDocument)
     {
         Id = Guid.NewGuid();
-        TitleNumber = titleNumber ?? throw new ArgumentNullException(nameof(titleNumber));
+        TitleNumber = titleNumber;
         OriginalValue = originalValue;
         DueDate = dueDate;
         InterestRatePerDay = interestRatePerDay;
         PenaltyRate = penaltyRate;
         Debtor = new Debtor(debtorName, debtorDocument);
         CreatedAt = DateTime.UtcNow;
-
-        ValidateEntity();
     }
 
     public decimal CalculateUpdatedValue()
@@ -104,25 +100,16 @@ public class DebtTitle
 
     public void UpdateInterestRate(decimal newInterestRate)
     {
-        if (newInterestRate < 0)
-            throw new ArgumentException("A taxa de juros não pode ser negativa.");
-        
         InterestRatePerDay = newInterestRate;
     }
 
     public void UpdatePenaltyRate(decimal newPenaltyRate)
     {
-        if (newPenaltyRate < 0)
-            throw new ArgumentException("A taxa de multa não pode ser negativa.");
-        
         PenaltyRate = newPenaltyRate;
     }
 
     public void UpdateDebtor(string debtorName, string? debtorDocument)
     {
-        if (string.IsNullOrWhiteSpace(debtorName))
-            throw new ArgumentException("O nome do devedor é obrigatório.");
-        
         if (string.IsNullOrWhiteSpace(debtorDocument))
             debtorDocument = Debtor?.Document?.Value ?? string.Empty;
         
@@ -131,17 +118,11 @@ public class DebtTitle
 
     public void UpdateTitleNumber(string titleNumber)
     {
-        if (string.IsNullOrWhiteSpace(titleNumber))
-            throw new ArgumentException("O número do título é obrigatório.");
-        
         TitleNumber = titleNumber;
     }
 
     public void UpdateOriginalValue(decimal originalValue)
     {
-        if (originalValue <= 0)
-            throw new ArgumentException("O valor original deve ser maior que zero.");
-        
         OriginalValue = originalValue;
     }
 
@@ -158,23 +139,5 @@ public class DebtTitle
         UpdateInterestRate(interestRatePerDay);
         UpdatePenaltyRate(penaltyRate);
         UpdateDebtor(debtorName, debtorDocument);
-    }
-
-    private void ValidateEntity()
-    {
-        if (string.IsNullOrWhiteSpace(TitleNumber))
-            throw new ArgumentException("O número do título é obrigatório.");
-
-        if (OriginalValue <= 0)
-            throw new ArgumentException("O valor original deve ser maior que zero.");
-
-        if (InterestRatePerDay < 0)
-            throw new ArgumentException("A taxa de juros não pode ser negativa.");
-
-        if (PenaltyRate < 0)
-            throw new ArgumentException("A taxa de multa não pode ser negativa.");
-
-        if (Debtor == null)
-            throw new ArgumentException("O devedor é obrigatório.");
     }
 }

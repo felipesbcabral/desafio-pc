@@ -10,9 +10,6 @@ public record Document
 
     public Document(string value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Documento não pode ser vazio.");
-
         var cleanValue = CleanDocument(value);
         
         if (IsValidCpf(cleanValue))
@@ -27,8 +24,25 @@ public record Document
         }
         else
         {
-            throw new ArgumentException("Documento inválido. Deve ser um CPF ou CNPJ válido.");
+            Value = cleanValue;
+            Type = DocumentType.CPF;
         }
+    }
+
+    public bool IsValid => Type switch
+    {
+        DocumentType.CPF => IsValidCpf(Value),
+        DocumentType.CNPJ => IsValidCnpj(Value),
+        _ => false
+    };
+
+    public static bool IsValidDocument(string document)
+    {
+        if (string.IsNullOrWhiteSpace(document))
+            return false;
+
+        var cleanValue = CleanDocument(document);
+        return IsValidCpf(cleanValue) || IsValidCnpj(cleanValue);
     }
 
     public string FormattedValue => Type switch
@@ -38,10 +52,8 @@ public record Document
         _ => Value
     };
 
-    private static string CleanDocument(string document)
-    {
-        return Regex.Replace(document, @"[^0-9]", "");
-    }
+    private static string CleanDocument(string document) 
+        => Regex.Replace(document,@"[^0-9]","");
 
     private static bool IsValidCpf(string cpf)
     {
@@ -110,7 +122,7 @@ public record Document
 
     private static string FormatCnpj(string cnpj)
     {
-        return $"{cnpj.Substring(0, 2)}.{cnpj.Substring(2, 3)}.{cnpj.Substring(5, 3)}/{cnpj.Substring(8, 4)}-{cnpj.Substring(12, 2)}";
+        return $"{cnpj[..2]}.{cnpj.Substring(2,3)}.{cnpj.Substring(5,3)}/{cnpj.Substring(8,4)}-{cnpj.Substring(12,2)}";
     }
 }
 

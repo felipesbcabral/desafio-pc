@@ -29,15 +29,6 @@ public class DebtTitleServiceTests
     }
 
     [Fact]
-    public void Constructor_ShouldThrowArgumentNullException_WhenRepositoryIsNull()
-    {
-        // Act & Assert
-        var action = () => new DebtTitleService(null!, _mockCreateValidator.Object, _mockUpdateValidator.Object, _mockMappingService.Object);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("repository");
-    }
-
-    [Fact]
     public async Task GetAllAsync_ShouldReturnAllDebtTitles()
     {
         // Arrange

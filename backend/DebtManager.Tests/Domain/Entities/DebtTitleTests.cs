@@ -32,110 +32,6 @@ public class DebtTitleTests
         debtTitle.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData(" ")]
-    public void Constructor_ShouldThrowArgumentException_WhenTitleNumberIsEmptyOrWhitespace(string invalidTitleNumber)
-    {
-        // Arrange
-        var originalValue = 5000m;
-        var dueDate = DateTime.Now.AddDays(30);
-        var interestRatePerDay = 0.001m;
-        var penaltyRate = 0.1m;
-        var debtor = CreateValidDebtor();
-
-        // Act & Assert
-        var action = () => new DebtTitle(invalidTitleNumber, originalValue, dueDate, interestRatePerDay, penaltyRate, debtor);
-        action.Should().Throw<ArgumentException>()
-            .WithMessage("O número do título é obrigatório.");
-    }
-
-    [Fact]
-    public void Constructor_ShouldThrowArgumentNullException_WhenTitleNumberIsNull()
-    {
-        // Arrange
-        var originalValue = 5000m;
-        var dueDate = DateTime.Now.AddDays(30);
-        var interestRatePerDay = 0.001m;
-        var penaltyRate = 0.1m;
-        var debtor = CreateValidDebtor();
-
-        // Act & Assert
-        var action = () => new DebtTitle(null!, originalValue, dueDate, interestRatePerDay, penaltyRate, debtor);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("titleNumber");
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-100)]
-    public void Constructor_ShouldThrowArgumentException_WhenOriginalValueIsInvalid(decimal invalidValue)
-    {
-        // Arrange
-        var titleNumber = "TITLE-001";
-        var dueDate = DateTime.Now.AddDays(30);
-        var interestRatePerDay = 0.001m;
-        var penaltyRate = 0.1m;
-        var debtor = CreateValidDebtor();
-
-        // Act & Assert
-        var action = () => new DebtTitle(titleNumber, invalidValue, dueDate, interestRatePerDay, penaltyRate, debtor);
-        action.Should().Throw<ArgumentException>()
-            .WithMessage("O valor original deve ser maior que zero.");
-    }
-
-    [Theory]
-    [InlineData(-0.001)]
-    [InlineData(-1)]
-    public void Constructor_ShouldThrowArgumentException_WhenInterestRateIsNegative(decimal invalidRate)
-    {
-        // Arrange
-        var titleNumber = "TITLE-001";
-        var originalValue = 5000m;
-        var dueDate = DateTime.Now.AddDays(30);
-        var penaltyRate = 0.1m;
-        var debtor = CreateValidDebtor();
-
-        // Act & Assert
-        var action = () => new DebtTitle(titleNumber, originalValue, dueDate, invalidRate, penaltyRate, debtor);
-        action.Should().Throw<ArgumentException>()
-            .WithMessage("A taxa de juros não pode ser negativa.");
-    }
-
-    [Theory]
-    [InlineData(-0.1)]
-    [InlineData(-1)]
-    public void Constructor_ShouldThrowArgumentException_WhenPenaltyRateIsNegative(decimal invalidRate)
-    {
-        // Arrange
-        var titleNumber = "TITLE-001";
-        var originalValue = 5000m;
-        var dueDate = DateTime.Now.AddDays(30);
-        var interestRatePerDay = 0.001m;
-        var debtor = CreateValidDebtor();
-
-        // Act & Assert
-        var action = () => new DebtTitle(titleNumber, originalValue, dueDate, interestRatePerDay, invalidRate, debtor);
-        action.Should().Throw<ArgumentException>()
-            .WithMessage("A taxa de multa não pode ser negativa.");
-    }
-
-    [Fact]
-    public void Constructor_ShouldThrowArgumentNullException_WhenDebtorIsNull()
-    {
-        // Arrange
-        var titleNumber = "TITLE-001";
-        var originalValue = 5000m;
-        var dueDate = DateTime.Now.AddDays(30);
-        var interestRatePerDay = 0.001m;
-        var penaltyRate = 0.1m;
-
-        // Act & Assert
-        var action = () => new DebtTitle(titleNumber, originalValue, dueDate, interestRatePerDay, penaltyRate, null!);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("debtor");
-    }
-
     [Fact]
     public void AddInstallment_ShouldAddInstallmentToCollection()
     {
@@ -155,19 +51,6 @@ public class DebtTitleTests
         addedInstallment.Value.Should().Be(installmentValue);
         addedInstallment.DueDate.Should().Be(dueDate);
     }
-
-    [Fact]
-    public void AddInstallment_ShouldThrowArgumentException_WhenValueIsZeroOrNegative()
-    {
-        // Arrange
-        var debtTitle = CreateValidDebtTitle();
-
-        // Act & Assert
-        var action = () => debtTitle.AddInstallment(1, 0m, DateTime.Now.AddDays(30));
-        action.Should().Throw<ArgumentException>();
-    }
-
-
 
     [Fact]
     public void CalculateUpdatedValue_ShouldReturnOriginalValue_WhenNoInstallmentsAndNotOverdue()

@@ -10,13 +10,11 @@ public class DebtTitleRepository : IDebtTitleRepository
 
     public DebtTitleRepository(AppDbContext context)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _context = context;
     }
 
     public async Task<DebtTitle> AddAsync(DebtTitle debtTitle)
     {
-        ArgumentNullException.ThrowIfNull(debtTitle);
-
         await _context.DebtTitles.AddAsync(debtTitle);
         await _context.SaveChangesAsync();
         return debtTitle;
@@ -39,9 +37,6 @@ public class DebtTitleRepository : IDebtTitleRepository
 
     public async Task UpdateAsync(DebtTitle debtTitle)
     {
-        if (debtTitle == null)
-            throw new ArgumentNullException(nameof(debtTitle));
-
         _context.DebtTitles.Update(debtTitle);
         await _context.SaveChangesAsync();
     }
@@ -58,9 +53,6 @@ public class DebtTitleRepository : IDebtTitleRepository
 
     public async Task<IEnumerable<DebtTitle>> GetByDebtorDocumentAsync(string document)
     {
-        if (string.IsNullOrWhiteSpace(document))
-            throw new ArgumentException("Document cannot be null or empty", nameof(document));
-
         return await _context.DebtTitles
             .Include(dt => dt.Installments)
             .Where(dt => dt.Debtor.Document.Value == document)

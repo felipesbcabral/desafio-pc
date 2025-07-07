@@ -30,33 +30,39 @@ public class InstallmentTests
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void Constructor_ShouldThrowArgumentException_WhenInstallmentNumberIsInvalid(int invalidNumber)
+    public void Constructor_ShouldCreateInstallment_WhenInstallmentNumberIsInvalid_ButValidationShouldFailInFluentValidation(int invalidNumber)
     {
         // Arrange
         var debtTitleId = Guid.NewGuid();
         var value = 1000m;
         var dueDate = DateTime.Now.AddDays(30);
 
-        // Act & Assert
-        var action = () => new Installment(debtTitleId, invalidNumber, value, dueDate);
-        action.Should().Throw<ArgumentException>()
-            .WithMessage("O número da parcela deve ser maior que zero.");
+        // Act - O construtor não valida mais, mas o FluentValidation deveria falhar
+        var installment = new Installment(debtTitleId, invalidNumber, value, dueDate);
+
+        // Assert - O objeto é criado, mas seria inválido no FluentValidation
+        installment.InstallmentNumber.Should().Be(invalidNumber);
+        installment.Value.Should().Be(value);
+        installment.DueDate.Should().Be(dueDate);
     }
 
     [Theory]
     [InlineData(0)]
     [InlineData(-100)]
-    public void Constructor_ShouldThrowArgumentException_WhenValueIsInvalid(decimal invalidValue)
+    public void Constructor_ShouldCreateInstallment_WhenValueIsInvalid_ButValidationShouldFailInFluentValidation(decimal invalidValue)
     {
         // Arrange
         var debtTitleId = Guid.NewGuid();
         var installmentNumber = 1;
         var dueDate = DateTime.Now.AddDays(30);
 
-        // Act & Assert
-        var action = () => new Installment(debtTitleId, installmentNumber, invalidValue, dueDate);
-        action.Should().Throw<ArgumentException>()
-            .WithMessage("O valor da parcela deve ser maior que zero.");
+        // Act - O construtor não valida mais, mas o FluentValidation deveria falhar
+        var installment = new Installment(debtTitleId, installmentNumber, invalidValue, dueDate);
+
+        // Assert - O objeto é criado, mas seria inválido no FluentValidation
+        installment.InstallmentNumber.Should().Be(installmentNumber);
+        installment.Value.Should().Be(invalidValue);
+        installment.DueDate.Should().Be(dueDate);
     }
 
     [Fact]

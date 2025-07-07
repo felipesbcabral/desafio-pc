@@ -16,16 +16,7 @@ public record Debtor
 
     public Debtor(string name, string document)
     {
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Nome do devedor é obrigatório.");
-
-        if (name.Length < 2)
-            throw new ArgumentException("Nome do devedor deve ter pelo menos 2 caracteres.");
-
-        if (name.Length > 200)
-            throw new ArgumentException("Nome do devedor não pode ter mais de 200 caracteres.");
-
-        Name = name.Trim();
+        Name = name?.Trim() ?? string.Empty;
         Document = new Document(document);
     }
 

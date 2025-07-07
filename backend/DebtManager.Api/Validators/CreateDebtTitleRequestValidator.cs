@@ -43,18 +43,7 @@ public class CreateDebtTitleRequestValidator : AbstractValidator<CreateDebtTitle
 
     private static bool BeValidDocument(string? document)
     {
-        if (string.IsNullOrWhiteSpace(document))
-            return false;
-
-        try
-        {
-            _ = new Document(document);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        return Document.IsValidDocument(document ?? string.Empty);
     }
 }
 

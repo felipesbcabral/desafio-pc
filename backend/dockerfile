@@ -2,21 +2,14 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy solution file
-COPY DebtManager-Challenge.sln ./
-
-# Copy project files
-COPY DebtManager.Api/DebtManager.Api.csproj DebtManager.Api/
-COPY DebtManager.Core/DebtManager.Core.csproj DebtManager.Core/
-
-# Restore dependencies for production projects only
-RUN dotnet restore DebtManager.Api/DebtManager.Api.csproj
-
-# Copy all source code
+# Copy all source code first
 COPY . .
 
+# Restore dependencies
+RUN dotnet restore DebtManager.Api/DebtManager.Api.csproj
+
 # Build the application
-RUN dotnet build -c Release --no-restore
+RUN dotnet build DebtManager.Api/DebtManager.Api.csproj -c Release --no-restore
 
 # Publish the API project
 RUN dotnet publish DebtManager.Api/DebtManager.Api.csproj -c Release -o /app/publish --no-restore

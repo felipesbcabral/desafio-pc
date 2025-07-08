@@ -28,8 +28,6 @@ public class Installment
         Value = value;
         DueDate = dueDate;
         IsPaid = false;
-
-        ValidateInstallment();
     }
 
     public void MarkAsPaid()

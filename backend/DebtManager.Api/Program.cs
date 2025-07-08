@@ -2,10 +2,11 @@ using DebtManager.Core.Infrastructure.Persistence;
 using DebtManager.Core.Domain.Repositories;
 using DebtManager.Core.Application.Services;
 using DebtManager.Core.Application.Interfaces;
-using DebtManager.Api.Validators;
+using DebtManager.Core.Application.Validators;
+using DebtManager.Core.Application.DTOs;
 using DebtManager.Api.Services;
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +30,10 @@ builder.Services.AddScoped<IDebtTitleRepository, DebtTitleRepository>();
 builder.Services.AddScoped<IDebtTitleService, DebtTitleService>();
 builder.Services.AddScoped<MappingService>();
 builder.Services.AddScoped<IRequestMappingService, RequestMappingService>();
+
+// FluentValidation
+builder.Services.AddScoped<IValidator<CreateDebtTitleRequest>, CreateDebtTitleRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateDebtTitleRequest>, UpdateDebtTitleRequestValidator>();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
@@ -78,5 +83,5 @@ app.MapControllers();
 
 app.Run();
 
-// Torna a classe Program pública para testes de integração
+// a classe Program pública para testes de integração
 public partial class Program { }

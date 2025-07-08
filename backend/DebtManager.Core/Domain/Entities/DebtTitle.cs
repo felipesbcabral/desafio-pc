@@ -82,7 +82,6 @@ public class DebtTitle
             return totalOriginalValue + totalInterest + totalPenalty;
         }
         
-        // Fallback para títulos sem parcelas (compatibilidade)
         var daysPastDue = (DateTime.Now.Date - DueDate.Date).Days;
         if (daysPastDue <= 0)
             return OriginalValue;

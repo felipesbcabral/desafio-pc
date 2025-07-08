@@ -5,10 +5,6 @@ using DebtManager.Core.Domain.ValueObjects;
 using DebtManager.Core.Application.Interfaces;
 using DebtManager.Core.Application.Common;
 using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DebtManager.Core.Application.Services;
 

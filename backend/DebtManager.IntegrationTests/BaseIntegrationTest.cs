@@ -24,10 +24,8 @@ public class BaseIntegrationTest : IDisposable
         _scope = _apiFactory.Services.CreateScope();
         _dbContext = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
         
-        // Ensure database is created and apply migrations
         _dbContext.Database.EnsureCreated();
         
-        // Clean database before each test
         CleanDatabase();
         
         _httpClient = _apiFactory.CreateClient();
@@ -35,7 +33,6 @@ public class BaseIntegrationTest : IDisposable
 
     private void CleanDatabase()
     {
-        // Remove all data from tables
         _dbContext.Installments.RemoveRange(_dbContext.Installments);
         _dbContext.DebtTitles.RemoveRange(_dbContext.DebtTitles);
         _dbContext.SaveChanges();

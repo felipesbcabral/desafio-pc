@@ -37,10 +37,9 @@ public class InstallmentTests
         var value = 1000m;
         var dueDate = DateTime.Now.AddDays(30);
 
-        // Act - O construtor não valida mais, mas o FluentValidation deveria falhar
         var installment = new Installment(debtTitleId, invalidNumber, value, dueDate);
 
-        // Assert - O objeto é criado, mas seria inválido no FluentValidation
+        // Assert
         installment.InstallmentNumber.Should().Be(invalidNumber);
         installment.Value.Should().Be(value);
         installment.DueDate.Should().Be(dueDate);
@@ -56,10 +55,10 @@ public class InstallmentTests
         var installmentNumber = 1;
         var dueDate = DateTime.Now.AddDays(30);
 
-        // Act - O construtor não valida mais, mas o FluentValidation deveria falhar
+        // Act 
         var installment = new Installment(debtTitleId, installmentNumber, invalidValue, dueDate);
 
-        // Assert - O objeto é criado, mas seria inválido no FluentValidation
+        // Assert
         installment.InstallmentNumber.Should().Be(installmentNumber);
         installment.Value.Should().Be(invalidValue);
         installment.DueDate.Should().Be(dueDate);

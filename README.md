@@ -125,10 +125,6 @@ npm start
 # Testes do Backend
 cd backend
 dotnet test
-
-# Testes do Frontend
-cd frontend
-npm test
 ```
 
 ## 🧮 Cálculo de Juros e Multas
@@ -195,17 +191,6 @@ desafio-pc/
 ├── docker-compose.yml
 └── README.md
 ```
-
-## 🚀 Próximos Passos
-
-- [ ] Implementar autenticação e autorização
-- [ ] Adicionar notificações por email
-- [ ] Relatórios em PDF
-- [ ] Dashboard com mais métricas
-- [ ] Testes E2E com Cypress
-- [ ] Deploy automatizado
-- [ ] Cache com Redis
-- [ ] Logs estruturados
 
 ## 👨‍💻 Autor
 

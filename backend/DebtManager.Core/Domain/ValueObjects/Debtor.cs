@@ -7,11 +7,10 @@ public record Debtor
     public string Name { get; init; }
     public Document Document { get; init; }
 
-    // Construtor privado para EF Core
     private Debtor() 
     {
         Name = string.Empty;
-        Document = new Document("11144477735"); // CPF válido para uso interno do EF Core
+        Document = new Document("11144477735");
     }
 
     public Debtor(string name, string document)

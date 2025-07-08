@@ -12,10 +12,8 @@ public class Installment
     public bool IsPaid { get; private set; }
     public DateTime? PaidAt { get; private set; }
 
-    // Propriedade de navegação
     public DebtTitle DebtTitle { get; private set; } = null!;
 
-    // Construtor privado para EF Core
     private Installment() { }
 
     public Installment(
@@ -68,7 +66,7 @@ public class Installment
         if (daysOverdue <= 0)
             return 0;
 
-        // Fórmula correta: (Taxa Juros Mensal / 30) × Dias Atraso × Valor da Parcela
+        // Fórmula (Taxa Juros Mensal / 30) × Dias Atraso × Valor da Parcela
         // monthlyInterestRate já vem como taxa mensal (ex: 0.01 para 1%)
         return (monthlyInterestRate / 30) * daysOverdue * Value;
     }
@@ -78,10 +76,5 @@ public class Installment
         var interest = CalculateInterest(monthlyInterestRate);
         var penalty = IsOverdue() ? Value * (penaltyRate / 100) : 0;
         return Value + interest + penalty;
-    }
-
-    private void ValidateInstallment()
-    {
-        // Validações removidas - agora são feitas pelo FluentValidation
     }
 }

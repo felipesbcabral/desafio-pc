@@ -12,8 +12,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddValidatorsFromAssemblyContaining<CreateDebtTitleRequestValidator>();
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp", policy =>

@@ -16,19 +16,15 @@ public class SharedContainerFixture : IAsyncLifetime
     
     public async Task InitializeAsync()
     {
-        // Create SQL Server container using the specialized MsSql container
         _sqlServerContainer = new MsSqlBuilder()
             .WithPassword("DebtManager123!")
             .WithCleanUp(true)
             .Build();
             
-        // Start the container
         await _sqlServerContainer.StartAsync();
         
-        // Get connection string from the container
         ConnectionString = _sqlServerContainer.GetConnectionString();
         
-        // Wait for SQL Server to be ready
         await WaitForSqlServerToBeReady();
     }
     
@@ -52,12 +48,12 @@ public class SharedContainerFixture : IAsyncLifetime
                 using var connection = new SqlConnection(ConnectionString);
                 await connection.OpenAsync();
                 await connection.CloseAsync();
-                return; // Connection successful
+                return;
             }
             catch
             {
                 retryCount++;
-                await Task.Delay(1000); // Wait 1 second before retry
+                await Task.Delay(1000);
             }
         }
         

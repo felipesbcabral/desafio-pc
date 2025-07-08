@@ -58,7 +58,6 @@ public class DebtsControllerTests(SharedContainerFixture containerFixture): Base
         Assert.Equal(request.DebtorName, debtResponse.DebtorName);
         Assert.Equal(2, debtResponse.Installments.Count);
 
-        // Verify in database
         var debtInDb = await _dbContext.DebtTitles
             .Include(d => d.Installments)
             .FirstOrDefaultAsync(d => d.Id == debtResponse.Id);

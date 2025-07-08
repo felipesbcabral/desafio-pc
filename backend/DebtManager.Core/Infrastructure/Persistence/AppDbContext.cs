@@ -3,30 +3,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DebtManager.Core.Infrastructure.Persistence;
 
-/// <summary>
-/// Contexto do Entity Framework para o DebtManager
-/// </summary>
 public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
 
-    /// <summary>
-    /// DbSet para títulos de dívida
-    /// </summary>
     public DbSet<DebtTitle> DebtTitles { get; set; }
 
-    /// <summary>
-    /// DbSet para parcelas
-    /// </summary>
     public DbSet<Installment> Installments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configuração da entidade DebtTitle
         modelBuilder.Entity<DebtTitle>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -58,7 +48,6 @@ public class AppDbContext : DbContext
                 .HasColumnType("datetime2")
                 .IsRequired();
 
-            // Configuração do Value Object Debtor usando OwnsOne
             entity.OwnsOne(e => e.Debtor, debtor =>
             {
                 debtor.Property(d => d.Name)
@@ -80,16 +69,12 @@ public class AppDbContext : DbContext
                 });
             });
 
-            // Value Object Debtor agora é mapeado corretamente com OwnsOne
-
-            // Relacionamento com Installments
             entity.HasMany(e => e.Installments)
                 .WithOne(i => i.DebtTitle)
                 .HasForeignKey(i => i.DebtTitleId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // Configuração da entidade Installment
         modelBuilder.Entity<Installment>(entity =>
         {
             entity.HasKey(e => e.Id);

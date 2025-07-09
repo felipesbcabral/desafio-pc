@@ -226,12 +226,12 @@ import { CustomValidators } from '../../../../shared/validators/custom-validator
             ></app-pascho-button>
             <app-pascho-button
               label="Enviar Cobrança"
-              variant="warning"
+              variant="outline-danger"
               leftIcon="mail"
             ></app-pascho-button>
             <app-pascho-button
               label="Renegociar"
-              variant="info"
+              variant="secondary"
               leftIcon="handshake"
             ></app-pascho-button>
             <app-pascho-button

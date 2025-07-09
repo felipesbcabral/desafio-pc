@@ -218,7 +218,7 @@ import { PaschoInputComponent } from '../../../../shared/components/pascho-input
             <div class="flex space-x-2">
               <app-pascho-button
                 label="Pagar Antecipado"
-                variant="info"
+                variant="secondary"
                 size="sm"
                 leftIcon="zap"
               ></app-pascho-button>
@@ -251,7 +251,7 @@ import { PaschoInputComponent } from '../../../../shared/components/pascho-input
             <div class="flex space-x-2">
               <app-pascho-button
                 label="Pagar Antecipado"
-                variant="info"
+                variant="secondary"
                 size="sm"
                 leftIcon="zap"
               ></app-pascho-button>
@@ -276,12 +276,12 @@ import { PaschoInputComponent } from '../../../../shared/components/pascho-input
           ></app-pascho-button>
           <app-pascho-button
             label="Renegociar"
-            variant="warning"
+            variant="outline-danger"
             leftIcon="handshake"
           ></app-pascho-button>
           <app-pascho-button
             label="Gerar Boleto"
-            variant="info"
+            variant="secondary"
             leftIcon="file-text"
           ></app-pascho-button>
           <app-pascho-button

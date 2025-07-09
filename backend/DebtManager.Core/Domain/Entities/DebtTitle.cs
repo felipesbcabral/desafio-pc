@@ -87,7 +87,6 @@ public class DebtTitle
         if (daysPastDue <= 0)
             return OriginalValue;
 
-        // InterestRatePerDay e PenaltyRate já vêm como decimais, não precisam dividir por 100
         var interest = OriginalValue * InterestRatePerDay * daysPastDue;
         var penalty = OriginalValue * PenaltyRate;
         return OriginalValue + interest + penalty;

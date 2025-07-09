@@ -565,9 +565,7 @@ export class DebtCreateComponent {
     if (this.validateCurrentStep()) {
       this.currentStep++;
       
-      // Gerar parcelas automaticamente quando chegar na tela 3
       if (this.currentStep === 3) {
-        // Garantir que as parcelas sejam geradas
         setTimeout(() => {
           this.generateInstallments();
         }, 0);
@@ -677,14 +675,11 @@ export class DebtCreateComponent {
     const monthlyInterestRate = parseFloat(interestRatePerMonth?.toString() || '0') / 100;
     const penaltyRateDecimal = parseFloat(penaltyRate?.toString() || '0') / 100;
 
-    // Verificar se a data é válida - aceitar tanto formato ISO quanto DD/MM/YYYY
     let parsedDate: Date;
     if (firstDueDate.includes('/')) {
-      // Formato DD/MM/YYYY
       const [day, month, year] = firstDueDate.split('/');
       parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     } else {
-      // Formato ISO ou outros
       parsedDate = new Date(firstDueDate);
     }
 
@@ -694,7 +689,6 @@ export class DebtCreateComponent {
 
     const installmentsArray = this.getInstallmentsFormArray();
     
-    // Limpar parcelas existentes
     while (installmentsArray.length > 0) {
       installmentsArray.removeAt(0);
     }

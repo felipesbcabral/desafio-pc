@@ -1,5 +1,15 @@
 # 💰 DebtManager Challenge
 
+## IMAGEM VISUAL DO PROJETO:
+
+![image](https://github.com/user-attachments/assets/a5e3b39f-d9c1-4888-a9fd-64f97c070a3e)
+![image](https://github.com/user-attachments/assets/16cb07b9-8abe-4e97-86db-76ff34b6723e)
+![image](https://github.com/user-attachments/assets/a5008f1f-1244-4e8c-8bbb-0297d032ce57)
+![image](https://github.com/user-attachments/assets/37419f19-5ace-4f08-9094-6e26a782900b)
+![image](https://github.com/user-attachments/assets/44b2895f-4390-4425-bd8d-6c555d7fe9a3)
+![image](https://github.com/user-attachments/assets/719515a5-6aaf-4bf2-89ac-d3b76feaf894)
+![image](https://github.com/user-attachments/assets/71303e8d-14a2-4344-a3c9-4c93dca8d29b)
+
 > Sistema completo para gestão de títulos de dívida com backend .NET 8 e frontend Angular 20
 
 ## 📋 Sobre o Projeto

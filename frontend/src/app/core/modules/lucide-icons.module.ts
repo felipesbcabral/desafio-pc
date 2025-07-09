@@ -1,9 +1,8 @@
 import { NgModule } from '@angular/core';
-import { LucideAngularModule, Download, TrendingUp, TrendingDown, DollarSign, AlertTriangle, FileText, Calendar, Clock, BarChart3, Plus, Search, Settings, Menu, CreditCard, Bell, User, ChevronDown, ChevronLeft, ChevronRight, LogOut, Info, LayoutDashboard, PlusCircle, Users, Eye, Edit, Trash2, RefreshCw, X, Loader2, AlertCircle, ArrowLeft, ArrowRight, Check, Mail, Handshake } from 'lucide-angular';
+import { LucideAngularModule, TrendingUp, TrendingDown, DollarSign, AlertTriangle, FileText, Calendar, Clock, Plus, Search, Menu, Bell, User, ChevronDown, ChevronLeft, ChevronRight, LogOut, Info, LayoutDashboard, PlusCircle, Eye, EyeOff, Edit, Trash2, RefreshCw, X, Loader2, AlertCircle, ArrowLeft, ArrowRight, Check, Mail, Handshake } from 'lucide-angular';
 
 @NgModule({
   imports: [LucideAngularModule.pick({
-    Download,
     TrendingUp,
     TrendingDown,
     DollarSign,
@@ -11,12 +10,10 @@ import { LucideAngularModule, Download, TrendingUp, TrendingDown, DollarSign, Al
     FileText,
     Calendar,
     Clock,
-    BarChart3,
     Plus,
     Search,
-    Settings,
     Menu,
-    CreditCard,
+
     Bell,
     User,
     ChevronDown,
@@ -26,8 +23,8 @@ import { LucideAngularModule, Download, TrendingUp, TrendingDown, DollarSign, Al
     Info,
     LayoutDashboard,
     PlusCircle,
-    Users,
     Eye,
+    EyeOff,
     Edit,
     Trash2,
     RefreshCw,
@@ -38,7 +35,8 @@ import { LucideAngularModule, Download, TrendingUp, TrendingDown, DollarSign, Al
     ArrowRight,
     Check,
     Mail,
-    Handshake
+    Handshake,
+
   })],
   exports: [LucideAngularModule]
 })

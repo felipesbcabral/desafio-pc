@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd, RouterModule } from '@angular/router';
 import { LucideIconsModule } from '../../core/modules/lucide-icons.module';
 import { Subject, takeUntil, filter } from 'rxjs';
-import { PaschoButtonComponent } from '../../shared/components/pascho-button/pascho-button.component';
 
 interface MenuItem {
   label: string;
@@ -13,7 +12,6 @@ interface MenuItem {
     text: string;
     variant: 'primary' | 'success' | 'danger' | 'warning';
   };
-  children?: MenuItem[];
 }
 
 @Component({
@@ -23,8 +21,7 @@ interface MenuItem {
     CommonModule,
     RouterOutlet,
     RouterModule,
-    LucideIconsModule,
-    PaschoButtonComponent
+    LucideIconsModule
   ],
 
   template: `
@@ -45,12 +42,9 @@ interface MenuItem {
             
             <!-- Logo -->
             <div class="flex items-center space-x-3">
-              <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <lucide-icon name="CreditCard" [size]="20" class="text-white"></lucide-icon>
-              </div>
+              <img src="logo.webp" alt="Paschoalotto" class="h-8 w-auto">
               <div class="hidden sm:block">
                 <h1 class="text-xl font-bold text-secondary-900">DebtManager</h1>
-                <p class="text-xs text-secondary-600">Paschoalotto</p>
               </div>
             </div>
           </div>

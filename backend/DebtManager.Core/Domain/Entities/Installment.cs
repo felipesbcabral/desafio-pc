@@ -72,7 +72,8 @@ public class Installment
     public decimal CalculateUpdatedValue(decimal monthlyInterestRate, decimal penaltyRate)
     {
         var interest = CalculateInterest(monthlyInterestRate);
-        var penalty = IsOverdue() ? Value * (penaltyRate / 100) : 0;
+        // penaltyRate já vem como decimal (ex: 0.02 para 2%), não precisa dividir por 100
+        var penalty = IsOverdue() ? Value * penaltyRate : 0;
         return Value + interest + penalty;
     }
 }

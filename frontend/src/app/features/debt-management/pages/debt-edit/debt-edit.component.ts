@@ -277,8 +277,8 @@ export class DebtEditComponent implements OnInit {
         originalAmount: formValue.originalAmount,
         issueDate: formValue.issueDate,
         dueDate: formValue.dueDate,
-        interestRate: formValue.interestRate,
-        fineRate: formValue.fineRate,
+        interestRate: parseFloat(formValue.interestRate) / 100, // Converte % para decimal
+        fineRate: parseFloat(formValue.fineRate) / 100, // Converte % para decimal
         installmentCount: formValue.installmentCount,
         debtor: formValue.debtor
       };

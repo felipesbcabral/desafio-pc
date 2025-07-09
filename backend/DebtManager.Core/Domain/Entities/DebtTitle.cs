@@ -77,7 +77,8 @@ public class DebtTitle
             }
 
             // Aplica multa uma única vez sobre o valor original total se houver parcelas em atraso
-            var totalPenalty = hasOverdueInstallments ? totalOriginalValue * (PenaltyRate / 100) : 0m;
+            // PenaltyRate já vem como decimal (ex: 0.02 para 2%), não precisa dividir por 100
+            var totalPenalty = hasOverdueInstallments ? totalOriginalValue * PenaltyRate : 0m;
 
             return totalOriginalValue + totalInterest + totalPenalty;
         }
@@ -86,8 +87,9 @@ public class DebtTitle
         if (daysPastDue <= 0)
             return OriginalValue;
 
-        var interest = OriginalValue * (InterestRatePerDay / 100) * daysPastDue;
-        var penalty = OriginalValue * (PenaltyRate / 100);
+        // InterestRatePerDay e PenaltyRate já vêm como decimais, não precisam dividir por 100
+        var interest = OriginalValue * InterestRatePerDay * daysPastDue;
+        var penalty = OriginalValue * PenaltyRate;
         return OriginalValue + interest + penalty;
     }
 

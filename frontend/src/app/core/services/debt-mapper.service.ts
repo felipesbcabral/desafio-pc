@@ -25,12 +25,17 @@ export class DebtMapperService {
    * Converte CreateDebtRequest do frontend para CreateDebtTitleRequest do backend
    */
   toCreateRequest(debt: CreateDebtRequest): CreateDebtTitleRequest {
+    // Usar a data de vencimento da primeira parcela como dueDate do título
+    const firstInstallmentDueDate = debt.installments.length > 0 
+      ? debt.installments[0].dueDate.toISOString()
+      : new Date().toISOString();
+    
     return {
       titleNumber: debt.debtNumber,
       originalValue: debt.originalValue,
-      dueDate: new Date().toISOString(), // Usar a data de vencimento da primeira parcela
-      interestRatePerDay: debt.interestRate / 100, // Converter percentual para decimal
-      penaltyRate: debt.fineRate / 100, // Converter percentual para decimal
+      dueDate: firstInstallmentDueDate,
+      interestRatePerDay: debt.interestRate, // Já convertido no componente
+      penaltyRate: debt.fineRate, // Já convertido no componente
       debtorName: debt.debtor.name,
       debtorDocument: debt.debtor.document,
       installments: debt.installments.map((installment, index) => ({
@@ -49,8 +54,8 @@ export class DebtMapperService {
       titleNumber: currentDebt?.debtNumber || 'TITULO-001', // Usar número atual ou padrão
       originalValue: debt.originalAmount || 0,
       dueDate: debt.dueDate || new Date().toISOString(),
-      interestRatePerDay: (debt.interestRate || 0) / 100, // Converter % para decimal
-      penaltyRate: (debt.fineRate || 0) / 100, // Converter % para decimal
+      interestRatePerDay: (debt.interestRate || 0) / 100, // Converter % para decimal (mantido para update)
+      penaltyRate: (debt.fineRate || 0) / 100, // Converter % para decimal (mantido para update)
       debtorName: debt.debtor?.name || '',
       debtorDocument: debt.debtor?.document || ''
     };
@@ -105,8 +110,8 @@ export class DebtMapperService {
       totalInstallments: response.installmentCount,
       paidInstallments,
       status,
-      interestRate: response.interestRatePerDay,
-      fineRate: response.penaltyRate,
+      interestRate: response.interestRatePerDay * 30 * 100, // Converter taxa diária para mensal em %
+      fineRate: response.penaltyRate * 100, // Converter decimal para %
       createdAt: new Date(response.createdAt),
       installments
     };
@@ -119,14 +124,5 @@ export class DebtMapperService {
     return responses.map(response => this.fromResponse(response));
   }
 
-  /**
-   * Cria um InstallmentRequest a partir de dados do frontend
-   */
-  createInstallmentRequest(installmentNumber: number, value: number, dueDate: Date): InstallmentRequest {
-    return {
-      installmentNumber,
-      value,
-      dueDate: dueDate.toISOString()
-    };
-  }
+
 }

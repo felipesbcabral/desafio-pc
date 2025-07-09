@@ -266,8 +266,8 @@ public class InstallmentTests
         var penaltyRate = 0.1m; // 10%
 
         var expectedInterest = (monthlyInterestRate / 30) * daysOverdue * installment.Value; // 20
-        var expectedPenalty = installment.Value * (penaltyRate / 100); // 10 (não 100)
-        var expectedTotal = installment.Value + expectedInterest + expectedPenalty; // 1030
+        var expectedPenalty = installment.Value * penaltyRate; // 100 (penaltyRate já é decimal 0.1)
+        var expectedTotal = installment.Value + expectedInterest + expectedPenalty; // 1120 (1000 + 20 + 100)
 
         // Act
         var result = installment.CalculateUpdatedValue(monthlyInterestRate, penaltyRate);

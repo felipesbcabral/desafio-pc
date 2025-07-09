@@ -18,12 +18,4 @@ public record Debtor
         Name = name?.Trim() ?? string.Empty;
         Document = new Document(document);
     }
-
-    public string DocumentType => Document.Type.ToString();
-    public string FormattedDocument => Document.FormattedValue;
-
-    public override string ToString()
-    {
-        return $"{Name} ({FormattedDocument})";
-    }
 }

@@ -247,6 +247,10 @@ import { CustomValidators } from '../../../../shared/validators/custom-validator
             </div>
             
             <div formArrayName="installments" class="space-y-4">
+              <div *ngIf="getInstallmentsFormArray().length === 0" class="text-center py-8 text-gray-500">
+                <p>Nenhuma parcela gerada ainda.</p>
+                <p class="text-sm">Clique em "Recalcular" para gerar as parcelas automaticamente.</p>
+              </div>
               <div *ngFor="let installment of getInstallmentsFormArray().controls; let i = index" 
                    [formGroupName]="i" 
                    class="border border-gray-200 rounded-lg p-4">
@@ -455,7 +459,7 @@ export class DebtCreateComponent {
     });
 
     this.installmentsForm = this.fb.group({
-      installments: this.fb.array([this.createInstallmentFormGroup()])
+      installments: this.fb.array([])
     });
     
     // Adicionar listeners para recalcular automaticamente
@@ -478,7 +482,7 @@ export class DebtCreateComponent {
 
   createInstallmentFormGroup(): FormGroup {
     return this.fb.group({
-      installmentNumber: ['', [Validators.required, Validators.min(1)]],
+      installmentNumber: [1, [Validators.required, Validators.min(1)]],
       value: ['', [Validators.required, CustomValidators.positiveValue]],
       dueDate: ['', [Validators.required, CustomValidators.dateFormat]]
     });
@@ -560,6 +564,12 @@ export class DebtCreateComponent {
     this.markCurrentStepAsTouched();
     if (this.validateCurrentStep()) {
       this.currentStep++;
+      
+      if (this.currentStep === 3) {
+        setTimeout(() => {
+          this.generateInstallments();
+        }, 0);
+      }
     }
   }
 
@@ -576,7 +586,11 @@ export class DebtCreateComponent {
   }
 
   private formatDateForInput(date: string): string {
-    return new Date(date).toISOString().split('T')[0];
+    const dateObj = new Date(date);
+    const day = dateObj.getDate().toString().padStart(2, '0');
+    const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+    const year = dateObj.getFullYear();
+    return `${day}/${month}/${year}`;
   }
 
   onSubmit(): void {
@@ -596,14 +610,14 @@ export class DebtCreateComponent {
 
     // Preparar dados para envio
     const monthlyRate = parseFloat(this.debtForm.get('interestRatePerMonth')?.value);
-    const dailyRate = monthlyRate / 30; // Converter taxa mensal para diária
+    const dailyRate = (monthlyRate / 100) / 30; // Converter % para decimal e depois para taxa diária
     
     const createDebtRequest = {
       titleNumber: this.debtForm.get('titleNumber')?.value,
       originalValue: parseFloat(this.debtForm.get('originalValue')?.value),
       dueDate: this.formatDateForBackend(this.debtForm.get('dueDate')?.value),
       interestRatePerDay: dailyRate,
-      penaltyRate: parseFloat(this.debtForm.get('penaltyRate')?.value),
+      penaltyRate: parseFloat(this.debtForm.get('penaltyRate')?.value) / 100, // Converter % para decimal
       debtorName: this.debtorForm.get('name')?.value,
       debtorDocument: this.debtorForm.get('document')?.value,
       installments: this.getInstallmentsFormArray().controls.map(control => ({
@@ -628,9 +642,16 @@ export class DebtCreateComponent {
   onInstallmentCountChange(): void {
     const numberOfInstallments = this.debtForm.get('numberOfInstallments')?.value;
     const originalValue = this.debtForm.get('originalValue')?.value;
+    const firstDueDate = this.debtForm.get('dueDate')?.value;
     
-    if (numberOfInstallments && originalValue && numberOfInstallments > 0) {
-      this.generateInstallments();
+    // Só gerar parcelas se todos os campos obrigatórios estiverem preenchidos e válidos
+    if (numberOfInstallments && originalValue && firstDueDate && 
+        numberOfInstallments > 0 && originalValue > 0) {
+      // Verificar se a data é válida antes de gerar parcelas
+      const parsedDate = new Date(firstDueDate);
+      if (!isNaN(parsedDate.getTime())) {
+        this.generateInstallments();
+      }
     }
   }
 
@@ -638,29 +659,74 @@ export class DebtCreateComponent {
     const numberOfInstallments = this.debtForm.get('numberOfInstallments')?.value;
     const originalValue = this.debtForm.get('originalValue')?.value;
     const firstDueDate = this.debtForm.get('dueDate')?.value;
+    const interestRatePerMonth = this.debtForm.get('interestRatePerMonth')?.value;
+    const penaltyRate = this.debtForm.get('penaltyRate')?.value;
 
-    if (!numberOfInstallments || !originalValue || !firstDueDate) {
+    // Validações mais rigorosas
+    if (!numberOfInstallments || isNaN(numberOfInstallments) || numberOfInstallments <= 0 || 
+        !originalValue || isNaN(originalValue) || originalValue <= 0 || 
+        !firstDueDate || firstDueDate.trim() === '') {
       return;
     }
 
-    // Limpar parcelas existentes
+    // Converter valores para números se necessário
+    const numInstallments = parseInt(numberOfInstallments.toString(), 10);
+    const totalValue = parseFloat(originalValue.toString());
+    const monthlyInterestRate = parseFloat(interestRatePerMonth?.toString() || '0') / 100;
+    const penaltyRateDecimal = parseFloat(penaltyRate?.toString() || '0') / 100;
+
+    let parsedDate: Date;
+    if (firstDueDate.includes('/')) {
+      const [day, month, year] = firstDueDate.split('/');
+      parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    } else {
+      parsedDate = new Date(firstDueDate);
+    }
+
+    if (isNaN(parsedDate.getTime())) {
+      return;
+    }
+
     const installmentsArray = this.getInstallmentsFormArray();
+    
     while (installmentsArray.length > 0) {
       installmentsArray.removeAt(0);
     }
 
-    // Gerar parcelas básicas sem cálculos - o backend fará os cálculos
-    const baseValue = originalValue / numberOfInstallments;
+    const baseValue = totalValue / numInstallments;
+    const currentDate = new Date();
 
-    for (let i = 0; i < numberOfInstallments; i++) {
-      // Calcular data de vencimento
-      const dueDate = new Date(firstDueDate);
-      dueDate.setMonth(dueDate.getMonth() + i + 1);
+    // Gerar parcelas
+    for (let i = 0; i < numInstallments; i++) {
+      const dueDate = new Date(parsedDate);
+      dueDate.setMonth(dueDate.getMonth() + i);
       
+      // Verificar se a data calculada é válida
+      if (isNaN(dueDate.getTime())) {
+        continue;
+      }
+
+      let installmentValue = baseValue;
+
+      // Calcular juros e multa se a parcela estiver vencida
+      if (currentDate > dueDate) {
+        // Calcular dias de atraso
+        const timeDiff = currentDate.getTime() - dueDate.getTime();
+        const daysLate = Math.floor(timeDiff / (1000 * 3600 * 24));
+        
+        // Aplicar multa
+        installmentValue += baseValue * penaltyRateDecimal;
+        
+        // Aplicar juros compostos (taxa mensal convertida para diária)
+        const dailyInterestRate = Math.pow(1 + monthlyInterestRate, 1/30) - 1;
+        const interestMultiplier = Math.pow(1 + dailyInterestRate, daysLate);
+        installmentValue = baseValue * interestMultiplier + (baseValue * penaltyRateDecimal);
+      }
+
       const installmentGroup = this.createInstallmentFormGroup();
       installmentGroup.patchValue({
         installmentNumber: i + 1,
-        value: baseValue.toFixed(2),
+        value: parseFloat(installmentValue.toFixed(2)),
         dueDate: this.formatDateForInput(dueDate.toISOString())
       });
       

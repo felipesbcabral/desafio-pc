@@ -57,10 +57,3 @@ export interface InstallmentResponse {
   interestAmount: number;
   updatedValue: number;
 }
-
-// Interfaces para mapeamento entre frontend e backend
-export interface DebtMapper {
-  toCreateRequest(debt: any): CreateDebtTitleRequest;
-  toUpdateRequest(debt: any): UpdateDebtTitleRequest;
-  fromResponse(response: DebtTitleResponse): any;
-}

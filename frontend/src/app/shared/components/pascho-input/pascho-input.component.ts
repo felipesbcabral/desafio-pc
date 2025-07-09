@@ -54,7 +54,6 @@ import { LucideIconsModule } from '../../../core/modules/lucide-icons.module';
           (input)="onInput($event)"
           (blur)="onBlur()"
           (focus)="onFocus()"
-          (keydown)="onKeyDown($event)"
           [attr.aria-describedby]="hasError ? errorId : helpId"
           [attr.aria-invalid]="hasError"
         />
@@ -77,8 +76,7 @@ import { LucideIconsModule } from '../../../core/modules/lucide-icons.module';
           [attr.aria-invalid]="hasError"
         ></textarea>
         
-        <!-- Suffix -->
-        <span *ngIf="suffix" class="input-suffix">{{ suffix }}</span>
+
         
         <!-- Right icon -->
         <div *ngIf="rightIcon" class="input-icon-right">
@@ -128,14 +126,7 @@ import { LucideIconsModule } from '../../../core/modules/lucide-icons.module';
         {{ errorMessage }}
       </p>
       
-      <!-- Character count -->
-      <div
-        *ngIf="showCharCount && maxLength"
-        class="input-char-count"
-        [class.text-danger-500]="maxLength && value?.length && value.length > maxLength * 0.9"
-      >
-        {{ value?.length || 0 }}/{{ maxLength }}
-      </div>
+
     </div>
   `,
   styles: [`
@@ -165,17 +156,13 @@ import { LucideIconsModule } from '../../../core/modules/lucide-icons.module';
       @apply pl-12;
     }
     
-    .input-with-suffix {
-      @apply pr-12;
-    }
+
     
     .input-error-state {
       @apply border-danger-300 focus:border-danger-500 focus:outline-none;
     }
     
-    .input-success-state {
-      @apply border-success-300 focus:border-success-500 focus:outline-none;
-    }
+
     
     .input-disabled {
       @apply bg-gray-50 text-gray-500 cursor-not-allowed;
@@ -211,13 +198,9 @@ import { LucideIconsModule } from '../../../core/modules/lucide-icons.module';
       @apply absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none;
     }
     
-    /* Prefix/Suffix */
+    /* Prefix */
     .input-prefix {
       @apply absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm pointer-events-none;
-    }
-    
-    .input-suffix {
-      @apply absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm pointer-events-none;
     }
     
     /* Action buttons */
@@ -243,10 +226,7 @@ import { LucideIconsModule } from '../../../core/modules/lucide-icons.module';
       @apply mt-1 text-sm text-danger-600 flex items-center;
     }
     
-    /* Character count */
-    .input-char-count {
-      @apply mt-1 text-xs text-gray-500 text-right;
-    }
+
     
     /* Required indicator */
     .required {
@@ -275,11 +255,9 @@ export class PaschoInputComponent implements ControlValueAccessor, OnInit {
   @Input() readonly = false;
   @Input() required = false;
   @Input() clearable = false;
-  @Input() showCharCount = false;
   @Input() leftIcon?: string;
   @Input() rightIcon?: string;
   @Input() prefix?: string;
-  @Input() suffix?: string;
   @Input() min?: number;
   @Input() max?: number;
   @Input() step?: number;
@@ -289,9 +267,6 @@ export class PaschoInputComponent implements ControlValueAccessor, OnInit {
   @Input() control?: FormControl;
   
   @Output() inputChange = new EventEmitter<string>();
-  @Output() inputFocus = new EventEmitter<void>();
-  @Output() inputBlur = new EventEmitter<void>();
-  @Output() keyDown = new EventEmitter<KeyboardEvent>();
   
   value = '';
   focused = false;
@@ -355,10 +330,6 @@ export class PaschoInputComponent implements ControlValueAccessor, OnInit {
       classes.push('input-with-prefix');
     }
     
-    if (this.suffix) {
-      classes.push('input-with-suffix');
-    }
-    
     // States
     if (this.hasError) {
       classes.push('input-error-state');
@@ -384,17 +355,11 @@ export class PaschoInputComponent implements ControlValueAccessor, OnInit {
   
   onFocus(): void {
     this.focused = true;
-    this.inputFocus.emit();
   }
   
   onBlur(): void {
     this.focused = false;
     this.onTouched();
-    this.inputBlur.emit();
-  }
-  
-  onKeyDown(event: KeyboardEvent): void {
-    this.keyDown.emit(event);
   }
   
   clear(): void {

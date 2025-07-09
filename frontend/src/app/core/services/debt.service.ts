@@ -360,26 +360,7 @@ export class DebtService {
    */
   // Método removido - cálculos devem ser feitos exclusivamente no backend
 
-  /**
-   * Exporta relatório de dívidas
-   */
-  exportDebts(filter?: DebtFilter, format: 'pdf' | 'excel' | 'csv' = 'pdf'): Observable<Blob> {
-    let params = new HttpParams().set('format', format);
-    
-    if (filter) {
-      // Adiciona filtros aos parâmetros
-      Object.entries(filter).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          params = params.set(key, value.toString());
-        }
-      });
-    }
 
-    return this.http.get(`${this.apiUrl}/export`, {
-      params,
-      responseType: 'blob'
-    });
-  }
 
   /**
    * Atualiza uma dívida específica na lista local
@@ -416,8 +397,5 @@ export class DebtService {
   /**
    * Limpa o cache local
    */
-  clearCache(): void {
-    this.debtsSubject.next([]);
-    this.summarySubject.next(null);
-  }
+
 }

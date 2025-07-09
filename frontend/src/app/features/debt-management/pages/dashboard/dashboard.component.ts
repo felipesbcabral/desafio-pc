@@ -57,7 +57,6 @@ interface DashboardCard {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <app-pascho-card
           *ngFor="let card of dashboardCards"
-          [loading]="card.loading ?? false"
           class="transform hover:scale-105 transition-transform duration-200"
         >
           <div class="flex items-center justify-between">
@@ -126,7 +125,6 @@ interface DashboardCard {
           <app-pascho-card
             title="Títulos Recentes"
             subtitle="Últimos títulos adicionados"
-            [headerActions]="true"
           >
             <div slot="header-actions">
               <app-pascho-button

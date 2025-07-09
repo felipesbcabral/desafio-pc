@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, withEnabledBlockingInitialNavigation, withInMemoryScrolling, withRouterConfig } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -23,7 +23,7 @@ registerLocaleData(localePt);
 export const appConfig: ApplicationConfig = {
   providers: [
     // Core Angular providers
-    provideBrowserGlobalErrorListeners(),
+
     provideZoneChangeDetection(),
     
 

@@ -1,4 +1,4 @@
-import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { AbstractControl, ValidationErrors } from '@angular/forms';
 
 export class CustomValidators {
   /**
@@ -116,24 +116,7 @@ export class CustomValidators {
     return null;
   }
 
-  /**
-   * Validador para percentuais (apenas valores positivos)
-   */
-  static percentage(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-    if (!value && value !== 0) return null;
-    
-    const numValue = parseFloat(value);
-    if (isNaN(numValue)) {
-      return { percentage: { message: 'Deve ser um número válido' } };
-    }
-    
-    if (numValue < 0) {
-      return { percentage: { message: 'Deve ser um valor positivo' } };
-    }
-    
-    return null;
-  }
+
 
   /**
    * Validador para formato de data DD/MM/AAAA
@@ -166,41 +149,8 @@ export class CustomValidators {
     return null;
   }
 
-  /**
-   * Validador para data futura
-   */
-  static futureDate(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-    if (!value) {
-      return null;
-    }
-
-    const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-    const match = value.match(dateRegex);
-
-    if (!match) {
-      return null; // Deixa a validação de formato para outro validador
-    }
-
-    const [, day, month, year] = match;
-    const inputDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (inputDate <= today) {
-      return { futureDate: { message: 'A data deve ser futura' } };
-    }
-
-    return null;
-  }
-
-  /**
-   * Valida CPF
-   */
 
 
-  /**
-   * Valida CNPJ
-   */
+
 
 }

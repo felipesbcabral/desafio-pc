@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, HostBinding } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LucideIconsModule } from '../../../core/modules/lucide-icons.module';
@@ -13,8 +13,7 @@ import { LucideIconsModule } from '../../../core/modules/lucide-icons.module';
       [disabled]="disabled || loading"
       [class]="buttonClasses"
       (click)="handleClick($event)"
-      [attr.aria-label]="ariaLabel"
-      [title]="tooltip"
+
     >
       <!-- Loading spinner -->
       <svg
@@ -65,14 +64,7 @@ import { LucideIconsModule } from '../../../core/modules/lucide-icons.module';
         [size]="iconSize"
       ></lucide-icon>
       
-      <!-- Badge -->
-      <span
-        *ngIf="badge"
-        class="badge"
-        [class]="badgeClasses"
-      >
-        {{ badge }}
-      </span>
+
     </button>
   `,
   styles: [`
@@ -139,13 +131,7 @@ import { LucideIconsModule } from '../../../core/modules/lucide-icons.module';
       @apply bg-danger-600 text-white hover:bg-danger-700 focus:ring-danger-500;
     }
     
-    .btn-warning {
-      @apply bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-500;
-    }
-    
-    .btn-info {
-      @apply bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-500;
-    }
+
     
     /* Outline variants */
     .btn-outline-primary {
@@ -187,32 +173,13 @@ import { LucideIconsModule } from '../../../core/modules/lucide-icons.module';
       @apply w-full;
     }
     
-    /* Badge */
-    .badge {
-      @apply ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
-    }
-    
-    .badge-primary {
-      @apply bg-primary-100 text-primary-800;
-    }
-    
-    .badge-secondary {
-      @apply bg-secondary-100 text-secondary-800;
-    }
-    
-    .badge-success {
-      @apply bg-success-100 text-success-800;
-    }
-    
-    .badge-danger {
-      @apply bg-danger-100 text-danger-800;
-    }
+
   `]
 })
 export class PaschoButtonComponent {
   @Input() label = '';
   @Input() type: 'button' | 'submit' | 'reset' = 'button';
-  @Input() variant: 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'outline-primary' | 'outline-secondary' | 'outline-success' | 'outline-danger' | 'ghost' | 'ghost-primary' | 'ghost-danger' | 'link' = 'primary';
+  @Input() variant: 'primary' | 'secondary' | 'success' | 'danger' | 'outline-primary' | 'outline-secondary' | 'outline-success' | 'outline-danger' | 'ghost' | 'ghost-primary' | 'ghost-danger' | 'link' = 'primary';
   @Input() size: 'xs' | 'sm' | 'md' | 'lg' | 'xl' = 'md';
   @Input() disabled = false;
   @Input() loading = false;
@@ -221,10 +188,7 @@ export class PaschoButtonComponent {
   @Input() icon?: string;
   @Input() leftIcon?: string;
   @Input() rightIcon?: string;
-  @Input() badge?: string | number;
-  @Input() badgeVariant: 'primary' | 'secondary' | 'success' | 'danger' = 'primary';
-  @Input() ariaLabel?: string;
-  @Input() tooltip?: string;
+
   
   @Output() clicked = new EventEmitter<Event>();
   
@@ -249,9 +213,7 @@ export class PaschoButtonComponent {
     return classes.join(' ');
   }
   
-  get badgeClasses(): string {
-    return `badge-${this.badgeVariant}`;
-  }
+
   
   get iconSize(): number {
     switch (this.size) {

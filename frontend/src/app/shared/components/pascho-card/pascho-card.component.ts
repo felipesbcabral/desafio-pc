@@ -1,4 +1,4 @@
-import { Component, Input, HostBinding } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -8,14 +8,12 @@ import { CommonModule } from '@angular/common';
   template: `
     <div class="pascho-card" [class]="cardClasses">
       <div *ngIf="title || subtitle" class="card-header">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 *ngIf="title" class="card-title">{{ title }}</h3>
-            <p *ngIf="subtitle" class="card-subtitle">{{ subtitle }}</p>
-          </div>
-          <div *ngIf="headerActions" class="card-actions">
-            <ng-content select="[slot=header-actions]"></ng-content>
-          </div>
+        <div class="card-header-content">
+          <h3 *ngIf="title" class="card-title">{{ title }}</h3>
+          <p *ngIf="subtitle" class="card-subtitle">{{ subtitle }}</p>
+        </div>
+        <div class="card-header-actions">
+          <ng-content select="[slot=header-actions]"></ng-content>
         </div>
       </div>
       
@@ -23,7 +21,7 @@ import { CommonModule } from '@angular/common';
         <ng-content></ng-content>
       </div>
       
-      <div *ngIf="hasFooter" class="card-footer">
+      <div class="card-footer">
         <ng-content select="[slot=footer]"></ng-content>
       </div>
     </div>
@@ -49,9 +47,7 @@ import { CommonModule } from '@angular/common';
       @apply px-6 py-4 border-t border-gray-200 bg-gray-50;
     }
     
-    .card-actions {
-      @apply flex items-center space-x-2;
-    }
+
     
     /* Variants */
     .card-elevated {
@@ -76,22 +72,7 @@ import { CommonModule } from '@angular/common';
       }
     }
     
-    .card-loading {
-      @apply relative overflow-hidden;
-    }
-    
-    .card-loading::before {
-      content: '';
-      @apply absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30;
-      animation: shimmer 1.5s infinite;
-      transform: translateX(-100%);
-    }
-    
-    @keyframes shimmer {
-      100% {
-        transform: translateX(100%);
-      }
-    }
+
     
     /* Color variants */
     .card-primary {
@@ -130,28 +111,15 @@ import { CommonModule } from '@angular/common';
       }
     }
     
-    .card-warning {
-      @apply border-yellow-200 bg-yellow-50;
-      
-      .card-header {
-        @apply border-yellow-200 bg-yellow-100;
-      }
-      
-      .card-title {
-        @apply text-yellow-900;
-      }
-    }
+
   `]
 })
 export class PaschoCardComponent {
   @Input() title?: string;
   @Input() subtitle?: string;
   @Input() variant: 'default' | 'elevated' | 'bordered' | 'compact' = 'default';
-  @Input() color: 'default' | 'primary' | 'success' | 'danger' | 'warning' = 'default';
-  @Input() loading = false;
+  @Input() color: 'default' | 'primary' | 'success' | 'danger' = 'default';
   @Input() noPadding = false;
-  @Input() headerActions = false;
-  @Input() hasFooter = false;
   
   get cardClasses(): string {
     const classes = [];
@@ -166,10 +134,6 @@ export class PaschoCardComponent {
     
     if (this.variant === 'compact') {
       classes.push('card-compact');
-    }
-    
-    if (this.loading) {
-      classes.push('card-loading');
     }
     
     if (this.color !== 'default') {
